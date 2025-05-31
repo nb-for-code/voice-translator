@@ -260,7 +260,7 @@
             display: none;
         }
         
-        /* 翻訳履歴セクション - 最下段配置 */
+        /* 翻訳履歴セクション - シンプル版 */
         .translation-history {
             background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
             border-radius: 12px;
@@ -273,7 +273,7 @@
         
         .translation-history h3 {
             color: #7b1fa2;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -284,37 +284,25 @@
         
         .translation-content {
             color: #4a148c;
-            line-height: 1.8;
+            line-height: 1.5;
             font-size: 14px;
             white-space: pre-wrap;
             font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif;
         }
         
         .history-entry {
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(156, 39, 176, 0.2);
+            margin-bottom: 8px;
             animation: fadeInTop 0.5s ease-out;
         }
         
         .history-entry:last-child {
-            border-bottom: none;
-        }
-        
-        .history-timestamp {
-            color: #7b1fa2;
-            font-weight: bold;
-            font-size: 12px;
-        }
-        
-        .history-translation {
-            margin-top: 2px;
-            color: #4a148c;
+            margin-bottom: 0;
         }
         
         @keyframes fadeInTop {
             from {
                 opacity: 0;
-                transform: translateY(-10px);
+                transform: translateY(-5px);
             }
             to {
                 opacity: 1;
@@ -326,7 +314,7 @@
             text-align: right;
             color: #666;
             font-size: 12px;
-            margin-top: 8px;
+            margin-top: 10px;
             padding-top: 8px;
             border-top: 1px solid rgba(156, 39, 176, 0.2);
         }
@@ -437,7 +425,7 @@
         <div class="error" id="error"></div>
         <div class="success" id="success"></div>
         
-        <!-- 翻訳履歴セクション - 最下段に配置 -->
+        <!-- 翻訳履歴セクション - シンプル版 -->
         <div class="translation-history">
             <h3>
                 📚 翻訳履歴（最大1000文字）
@@ -459,7 +447,6 @@
                 this.translationHistory = [];
                 this.maxHistoryLength = 1000;
                 
-                // 動作確認済みCORSプロキシ
                 this.corsProxies = [
                     'https://api.allorigins.win/raw?url=',
                     'https://corsproxy.io/?',
@@ -475,13 +462,10 @@
                 this.setupEventListeners();
                 this.setupSpeechRecognition();
                 
-                // 保存されたAPIキーがあれば自動テスト
                 if (this.apiKey) {
                     this.el.apiKey.value = this.apiKey;
                     setTimeout(() => this.testAPI(), 1000);
                 }
-                
-                console.log('🚀 高精度音声翻訳アプリ初期化完了');
             }
             
             setupElements() {
@@ -504,7 +488,6 @@
             }
             
             setupEventListeners() {
-                // APIキーテスト
                 this.el.testBtn.addEventListener('click', () => this.testAPI());
                 this.el.apiKey.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
@@ -513,13 +496,9 @@
                     }
                 });
                 
-                // 録音ボタン
                 this.el.recordBtn.addEventListener('click', () => this.toggleRecording());
-                
-                // 履歴クリア
                 this.el.clearBtn.addEventListener('click', () => this.clearHistory());
                 
-                // 言語変更時の音声認識更新
                 this.el.fromLang.addEventListener('change', () => {
                     if (this.recognition) {
                         this.recognition.lang = this.getSpeechLang();
@@ -588,29 +567,22 @@
             }
             
             addToTranslationHistory(originalText, translatedText) {
-                // 新しい履歴エントリを作成
                 const timestamp = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
                 const entry = {
-                    timestamp: timestamp,
+                    timestamp,
                     original: originalText,
                     translated: translatedText,
                     text: `[${timestamp}] ${originalText} → ${translatedText}`
                 };
                 
-                // 配列の先頭に追加（最新が上に）
                 this.translationHistory.unshift(entry);
-                
-                // 1000文字制限チェック
                 this.trimHistoryToLimit();
-                
                 this.updateHistoryDisplay();
             }
             
             trimHistoryToLimit() {
-                // 全履歴の文字数を計算
                 let totalLength = this.translationHistory.reduce((sum, entry) => sum + entry.text.length + 1, 0);
                 
-                // 1000文字を超える場合、古い履歴を削除
                 while (totalLength > this.maxHistoryLength && this.translationHistory.length > 1) {
                     const removedEntry = this.translationHistory.pop();
                     totalLength -= (removedEntry.text.length + 1);
@@ -621,20 +593,14 @@
                 if (this.translationHistory.length === 0) {
                     this.el.translationHistory.innerHTML = '<div style="color: #9c27b0; font-style: italic;">翻訳結果がここに蓄積されます...</div>';
                 } else {
-                    // 最新の履歴から順に表示
-                    this.el.translationHistory.innerHTML = this.translationHistory.map(entry => `
-                        <div class="history-entry">
-                            <div class="history-timestamp">[${entry.timestamp}]</div>
-                            <div class="history-translation">${entry.original} → ${entry.translated}</div>
-                        </div>
-                    `).join('');
+                    this.el.translationHistory.innerHTML = this.translationHistory.map(entry => 
+                        `<div class="history-entry">[${entry.timestamp}] ${entry.original} → ${entry.translated}</div>`
+                    ).join('');
                 }
                 
-                // 文字数カウント
                 const totalLength = this.translationHistory.reduce((sum, entry) => sum + entry.text.length + 1, 0);
                 this.el.charCounter.textContent = `${totalLength} / ${this.maxHistoryLength} 文字`;
                 
-                // 文字数警告色
                 if (totalLength > this.maxHistoryLength * 0.9) {
                     this.el.charCounter.style.color = '#f44336';
                 } else if (totalLength > this.maxHistoryLength * 0.7) {
@@ -643,7 +609,6 @@
                     this.el.charCounter.style.color = '#666';
                 }
                 
-                // 新しい履歴をトップに表示（スクロールを上に）
                 this.el.translationHistory.scrollTop = 0;
             }
             
@@ -663,7 +628,6 @@
             }
             
             isValidAPIKey(key) {
-                // APIキーの形式チェック
                 const freeKeyPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}:fx$/i;
                 const proKeyPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
                 return freeKeyPattern.test(key) || proKeyPattern.test(key);
@@ -680,10 +644,7 @@
                 
                 if (!this.isValidAPIKey(apiKey)) {
                     this.el.apiStatus.className = 'api-status error';
-                    this.el.apiStatus.innerHTML = `
-                        ❌ <strong>APIキーの形式が正しくありません</strong><br>
-                        正しい形式: 12345678-1234-1234-1234-123456789abc:fx (無料版)
-                    `;
+                    this.el.apiStatus.innerHTML = '❌ <strong>APIキーの形式が正しくありません</strong><br>正しい形式: 12345678-1234-1234-1234-123456789abc:fx (無料版)';
                     return;
                 }
                 
@@ -693,13 +654,11 @@
                 this.el.apiStatus.innerHTML = '🔄 翻訳APIキーをテスト中...';
                 
                 try {
-                    // API使用量チェック
                     const usageUrl = `https://api-free.deepl.com/v2/usage?auth_key=${encodeURIComponent(apiKey)}`;
                     
                     let response = null;
                     let connectionMethod = '';
                     
-                    // プロキシを順次試行
                     for (let i = 0; i < this.corsProxies.length; i++) {
                         try {
                             let proxyUrl;
@@ -709,22 +668,16 @@
                                 proxyUrl = this.corsProxies[i] + usageUrl;
                             }
                             
-                            console.log(`🔄 プロキシ ${i + 1} を試行中:`, this.corsProxies[i]);
-                            
                             response = await fetch(proxyUrl, {
                                 method: 'GET',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                }
+                                headers: { 'Content-Type': 'application/json' }
                             });
                             
                             if (response.ok) {
                                 connectionMethod = `プロキシ ${i + 1} (${this.corsProxies[i].split('/')[2]})`;
-                                console.log(`✅ プロキシ ${i + 1} 成功`);
                                 break;
                             }
                         } catch (error) {
-                            console.log(`❌ プロキシ ${i + 1} 失敗:`, error.message);
                             continue;
                         }
                     }
@@ -737,7 +690,6 @@
                     const responseText = await response.text();
                     
                     try {
-                        // AllOriginsの特別処理
                         if (responseText.includes('"contents"')) {
                             const proxyData = JSON.parse(responseText);
                             usage = JSON.parse(proxyData.contents);
@@ -745,58 +697,52 @@
                             usage = JSON.parse(responseText);
                         }
                     } catch (parseError) {
-                        console.log('レスポンス解析エラー:', responseText);
                         throw new Error('APIレスポンスの解析に失敗しました');
-                   }
-                   
-                   // 成功時の処理
-                   this.apiKey = apiKey;
-                   localStorage.setItem('translation_api_key', apiKey);
-                   this.apiValid = true;
-                   
-                   const used = usage.character_count || 0;
-                   const limit = usage.character_limit || 500000;
-                   const remaining = limit - used;
-                   const percentage = limit > 0 ? ((used / limit) * 100).toFixed(1) : 0;
-                   
-                   this.el.apiStatus.className = 'api-status success';
-                   this.el.apiStatus.innerHTML = `
-                       ✅ <strong>翻訳API接続成功！</strong><br>
-                       📊 使用状況: ${used.toLocaleString()} / ${limit.toLocaleString()} 文字 (${percentage}%)<br>
-                       📝 残り: ${remaining.toLocaleString()} 文字<br>
-                       🔧 接続方法: ${connectionMethod}
-                       <div class="usage-bar">
-                           <div class="usage-progress" style="width: ${percentage}%"></div>
-                       </div>
-                   `;
-                   
-                   this.enableApp();
-                   this.showSuccess('✅ 高精度翻訳APIが利用可能になりました！翻訳履歴も1000文字まで保持されます。');
-                   
-               } catch (error) {
-                   console.error('🚫 API test error:', error);
-                   this.apiValid = false;
-                   
-                   this.el.apiStatus.className = 'api-status error';
-                   this.el.apiStatus.innerHTML = `
-                       ❌ <strong>翻訳API接続失敗</strong><br>
-                       エラー詳細: ${error.message}<br>
-                       <small>
-                           🔧 <strong>解決策:</strong><br>
-                           ✅ APIキーの形式を再確認してください<br>
-                           ✅ 使用量制限を確認してください<br>
-                           ✅ しばらく時間をおいて再試行してください<br>
-                           ✅ 別のブラウザで試してください
-                       </small>
-                   `;
-               } finally {
-                   this.el.testBtn.disabled = false;
-                   this.el.testBtn.innerHTML = '🧪 接続テスト';
+                    }
+                    
+                    this.apiKey = apiKey;
+                    localStorage.setItem('translation_api_key', apiKey);
+                    this.apiValid = true;
+                    
+                    const used = usage.character_count || 0;
+                    const limit = usage.character_limit || 500000;
+                    const remaining = limit - used;
+                    const percentage = limit > 0 ? ((used / limit) * 100).toFixed(1) : 0;
+                    
+                    this.el.apiStatus.className = 'api-status success';
+                    this.el.apiStatus.innerHTML = `
+                        ✅ <strong>翻訳API接続成功！</strong><br>
+                        📊 使用状況: ${used.toLocaleString()} / ${limit.toLocaleString()} 文字 (${percentage}%)<br>
+                        📝 残り: ${remaining.toLocaleString()} 文字<br>
+                        🔧 接続方法: ${connectionMethod}
+                        <div class="usage-bar">
+                            <div class="usage-progress" style="width: ${percentage}%"></div>
+                        </div>
+                    `;
+                    
+                    this.enableApp();
+                    this.showSuccess('✅ 高精度翻訳APIが利用可能になりました！翻訳履歴も1000文字まで保持されます。');
+                    
+                } catch (error) {
+                    this.apiValid = false;
+                    this.el.apiStatus.className = 'api-status error';
+                    this.el.apiStatus.innerHTML = `
+                        ❌ <strong>翻訳API接続失敗</strong><br>
+                        エラー詳細: ${error.message}<br>
+                        <small>
+                            🔧 <strong>解決策:</strong><br>
+                            ✅ APIキーの形式を再確認してください<br>
+                            ✅ 使用量制限を確認してください<br>
+                            ✅ しばらく時間をおいて再試行してください
+                        </small>
+                    `;
+                } finally {
+                    this.el.testBtn.disabled = false;
+                    this.el.testBtn.innerHTML = '🧪 接続テスト';
                }
            }
            
            enableApp() {
-               // アプリの機能を有効化
                this.el.recordBtn.disabled = false;
                this.el.recordBtn.innerHTML = '🎤<br>音声開始';
                this.el.status.textContent = 'マイクボタンを押して話してください';
@@ -810,13 +756,10 @@
                this.el.translatedText.innerHTML = '<span class="loading">🔄</span> 翻訳中...';
                
                try {
-                   // 翻訳API呼び出し
-                   const translateUrl = `https://api-free.deepl.com/v2/translate?auth_key=${encodeURIComponent(this.apiKey)}&text=${encodeURIComponent(text)}&target_lang=${this.el.toLang.value}&source_lang=${this.getSourceLang()}`;
+                   const translateUrl = `https://api-free.deepl.com/v2/translate?auth_key=${encodeURIComponent(this.apiKey)}&text=${encodeURIComponent(text)}&target_lang=${this.el.toLang.value}&source_lang=`;
                    
                    let response = null;
-                   let connectionMethod = '';
                    
-                   // プロキシを順次試行
                    for (let i = 0; i < this.corsProxies.length; i++) {
                        try {
                            let proxyUrl;
@@ -826,22 +769,13 @@
                                proxyUrl = this.corsProxies[i] + translateUrl;
                            }
                            
-                           console.log(`🔄 翻訳プロキシ ${i + 1} を試行中`);
-                           
                            response = await fetch(proxyUrl, {
                                method: 'GET',
-                               headers: {
-                                   'Content-Type': 'application/json'
-                               }
+                               headers: { 'Content-Type': 'application/json' }
                            });
                            
-                           if (response.ok) {
-                               connectionMethod = `プロキシ ${i + 1}`;
-                               console.log(`✅ 翻訳プロキシ ${i + 1} 成功`);
-                               break;
-                           }
+                           if (response.ok) break;
                        } catch (error) {
-                           console.log(`❌ 翻訳プロキシ ${i + 1} 失敗:`, error.message);
                            continue;
                        }
                    }
@@ -854,7 +788,6 @@
                    const responseText = await response.text();
                    
                    try {
-                       // AllOriginsの特別処理
                        if (responseText.includes('"contents"')) {
                            const proxyData = JSON.parse(responseText);
                            data = JSON.parse(proxyData.contents);
@@ -862,39 +795,26 @@
                            data = JSON.parse(responseText);
                        }
                    } catch (parseError) {
-                       console.log('翻訳レスポンス解析エラー:', responseText);
                        throw new Error('翻訳結果の解析に失敗しました');
                    }
                    
-                   // 翻訳結果の検証と表示
                    if (data && data.translations && data.translations[0] && data.translations[0].text) {
                        const translatedText = data.translations[0].text;
                        this.el.translatedText.textContent = translatedText;
-                       
-                       // 翻訳履歴に追加（最新が上に）
                        this.addToTranslationHistory(text, translatedText);
-                       
-                       console.log('✅ 翻訳成功:', translatedText);
                    } else {
-                       console.error('予期しないレスポンス構造:', data);
                        throw new Error('翻訳結果が見つかりませんでした');
                    }
                    
                    this.el.status.textContent = this.isRecording ? '🎙️ 音声を聞いています...' : 'マイクボタンを押して話してください';
                    
                } catch (error) {
-                   console.error('Translation error:', error);
                    this.el.translatedText.textContent = '❌ 翻訳エラーが発生しました';
                    this.el.status.textContent = 'マイクボタンを押して話してください';
                    this.showError(`翻訳エラー: ${error.message}`);
                } finally {
                    this.isTranslating = false;
                }
-           }
-           
-           getSourceLang() {
-               // 自動言語検出を使用
-               return '';
            }
            
            toggleRecording() {
@@ -919,7 +839,6 @@
                    this.hideMessages();
                } catch (error) {
                    this.showError('録音開始に失敗しました。ページを再読み込みしてお試しください。');
-                   console.error('Recording start error:', error);
                }
            }
            
@@ -953,27 +872,13 @@
            }
        }
        
-       // アプリケーション初期化
        document.addEventListener('DOMContentLoaded', () => {
            new VoiceTranslator();
            console.log('🎉 高精度音声翻訳アプリが起動しました！');
-           console.log('📚 新機能:');
-           console.log('  - 翻訳結果履歴1000文字まで保持');
-           console.log('  - 最新履歴が上に表示される降順ソート');
-           console.log('  - 履歴セクションを最下段に配置');
-           console.log('  - タイムスタンプ付き見やすい表示');
-           console.log('  - アニメーション付きエントリ追加');
-           console.log('🔧 使用プロキシ:');
-           console.log('  1. api.allorigins.win (最優先)');
-           console.log('  2. corsproxy.io (バックアップ)');
-           console.log('  3. cors.bridged.cc (バックアップ2)');
-           console.log('  4. thingproxy.freeboard.io (最終手段)');
        });
        
-       // パフォーマンス測定
        window.addEventListener('load', () => {
-           const loadTime = performance.now();
-           console.log(`⚡ アプリロード時間: ${Math.round(loadTime)}ms`);
+           console.log(`⚡ アプリロード時間: ${Math.round(performance.now())}ms`);
        });
    </script>
 </body>
