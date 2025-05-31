@@ -40,14 +40,75 @@
             background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
             border: 2px solid #2196f3;
             border-radius: 15px;
-            padding: 25px;
             margin-bottom: 25px;
+            overflow: hidden;
+            transition: all 0.4s ease;
         }
         
-        .api-setup h3 {
+        .api-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .api-header:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .api-header h3 {
             color: #1976d2;
-            margin-bottom: 15px;
             font-size: 1.2rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: #1976d2;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-btn:hover {
+            background: rgba(25, 118, 210, 0.1);
+            transform: scale(1.1);
+        }
+        
+        .api-content {
+            padding: 0 25px 25px 25px;
+            max-height: 500px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+        
+        .api-setup.collapsed .api-content {
+            max-height: 0;
+            padding: 0 25px;
+        }
+        
+        .api-setup.collapsed .toggle-btn {
+            transform: rotate(180deg);
+        }
+        
+        .api-description {
+            margin-bottom: 15px;
+            color: #1565c0;
+            font-size: 14px;
         }
         
         .api-input-row {
@@ -94,6 +155,7 @@
             border-radius: 8px;
             font-size: 0.95rem;
             margin-top: 10px;
+            transition: all 0.3s ease;
         }
         
         .api-status.success {
@@ -128,6 +190,18 @@
             background: linear-gradient(45deg, #4caf50, #8bc34a);
             border-radius: 4px;
             transition: width 0.5s ease;
+        }
+        
+        /* 最小化時のステータス表示 */
+        .api-mini-status {
+            display: none;
+            font-size: 0.85rem;
+            color: #1976d2;
+            font-weight: 500;
+        }
+        
+        .api-setup.collapsed .api-mini-status {
+            display: block;
         }
         
         .status {
@@ -260,7 +334,6 @@
             display: none;
         }
         
-        /* 翻訳履歴セクション - 自動削除版 */
         .translation-history {
             background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
             border-radius: 12px;
@@ -325,6 +398,9 @@
             .api-input-row { flex-direction: column; align-items: stretch; }
             .api-input-row input { min-width: auto; margin-bottom: 10px; }
             .translation-history { max-height: 200px; }
+            .api-header { padding: 15px 20px; }
+            .api-content { padding: 0 20px 20px 20px; }
+            .api-setup.collapsed .api-content { padding: 0 20px; }
         }
     </style>
 </head>
@@ -332,26 +408,36 @@
     <div class="container">
         <h1>🎤 音声翻訳アプリ</h1>
         
-        <!-- API設定セクション -->
-        <div class="api-setup">
-            <h3>🔑 翻訳API設定</h3>
-            <p style="margin-bottom: 15px; color: #1565c0; font-size: 14px;">
-                翻訳APIキーを設定すると、最高品質の翻訳が利用できます（月50万文字まで無料）<br>
-                <strong>🔧 CORS問題完全解決済み</strong>
-            </p>
-            
-            <div class="api-input-row">
-                <input 
-                    type="password" 
-                    id="apiKey" 
-                    placeholder="翻訳APIキーを入力（例: 12345678-1234-1234-1234-123456789abc:fx）"
-                    autocomplete="off"
-                >
-                <button id="testBtn">🧪 接続テスト</button>
+        <!-- API設定セクション（トグル対応） -->
+        <div class="api-setup" id="apiSetup">
+            <div class="api-header" id="apiHeader">
+                <h3>
+                    <span id="apiIcon">🔑</span>
+                    <span id="apiTitle">翻訳API設定</span>
+                    <span class="api-mini-status" id="apiMiniStatus"></span>
+                </h3>
+                <button class="toggle-btn" id="toggleBtn">🔽</button>
             </div>
             
-            <div class="api-status warning" id="apiStatus">
-                ⚠️ 翻訳APIキーが設定されていません。設定すると最高品質の翻訳が利用できます。
+            <div class="api-content" id="apiContent">
+                <p class="api-description">
+                    翻訳APIキーを設定すると、最高品質の翻訳が利用できます（月50万文字まで無料）<br>
+                    <strong>🔧 CORS問題完全解決済み</strong>
+                </p>
+                
+                <div class="api-input-row">
+                    <input 
+                        type="password" 
+                        id="apiKey" 
+                        placeholder="翻訳APIキーを入力（例: 12345678-1234-1234-1234-123456789abc:fx）"
+                        autocomplete="off"
+                    >
+                    <button id="testBtn">🧪 接続テスト</button>
+                </div>
+                
+                <div class="api-status warning" id="apiStatus">
+                    ⚠️ 翻訳APIキーが設定されていません。設定すると最高品質の翻訳が利用できます。
+                </div>
             </div>
         </div>
         
@@ -404,7 +490,6 @@
         <div class="error" id="error"></div>
         <div class="success" id="success"></div>
         
-        <!-- 翻訳履歴セクション - 自動削除版 -->
         <div class="translation-history">
             <h3>📚 翻訳履歴（自動削除：1000文字まで）</h3>
             <div class="translation-content" id="translationHistory">翻訳結果がここに蓄積されます...</div>
@@ -422,6 +507,7 @@
                 this.recognition = null;
                 this.translationHistory = [];
                 this.maxHistoryLength = 1000;
+                this.apiCollapsed = localStorage.getItem('api_collapsed') === 'true';
                 
                 this.corsProxies = [
                     'https://api.allorigins.win/raw?url=',
@@ -437,6 +523,7 @@
                 this.setupElements();
                 this.setupEventListeners();
                 this.setupSpeechRecognition();
+                this.restoreApiPanelState();
                 
                 if (this.apiKey) {
                     this.el.apiKey.value = this.apiKey;
@@ -446,6 +533,13 @@
             
             setupElements() {
                 this.el = {
+                    apiSetup: document.getElementById('apiSetup'),
+                    apiHeader: document.getElementById('apiHeader'),
+                    toggleBtn: document.getElementById('toggleBtn'),
+                    apiIcon: document.getElementById('apiIcon'),
+                    apiTitle: document.getElementById('apiTitle'),
+                    apiMiniStatus: document.getElementById('apiMiniStatus'),
+                    apiContent: document.getElementById('apiContent'),
                     apiKey: document.getElementById('apiKey'),
                     testBtn: document.getElementById('testBtn'),
                     apiStatus: document.getElementById('apiStatus'),
@@ -463,6 +557,13 @@
             }
             
             setupEventListeners() {
+                // API設定のトグル
+                this.el.apiHeader.addEventListener('click', () => this.toggleApiPanel());
+                this.el.toggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.toggleApiPanel();
+                });
+                
                 this.el.testBtn.addEventListener('click', () => this.testAPI());
                 this.el.apiKey.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
@@ -482,6 +583,45 @@
                         }
                     }
                 });
+            }
+            
+            toggleApiPanel() {
+                this.apiCollapsed = !this.apiCollapsed;
+                localStorage.setItem('api_collapsed', this.apiCollapsed.toString());
+                
+                if (this.apiCollapsed) {
+                    this.el.apiSetup.classList.add('collapsed');
+                } else {
+                    this.el.apiSetup.classList.remove('collapsed');
+                }
+                
+                this.updateApiPanelDisplay();
+            }
+            
+            restoreApiPanelState() {
+                if (this.apiCollapsed) {
+                    this.el.apiSetup.classList.add('collapsed');
+                }
+                this.updateApiPanelDisplay();
+            }
+            
+            updateApiPanelDisplay() {
+                if (this.apiValid && this.apiCollapsed) {
+                    // 成功時の最小化表示
+                    this.el.apiIcon.textContent = '✅';
+                    this.el.apiTitle.textContent = 'API接続済み';
+                    this.el.apiMiniStatus.textContent = '翻訳準備完了';
+                } else if (this.apiCollapsed) {
+                    // 未設定時の最小化表示
+                    this.el.apiIcon.textContent = '⚠️';
+                    this.el.apiTitle.textContent = 'API未設定';
+                    this.el.apiMiniStatus.textContent = '設定が必要です';
+                } else {
+                    // 展開時の表示
+                    this.el.apiIcon.textContent = this.apiValid ? '✅' : '🔑';
+                    this.el.apiTitle.textContent = '翻訳API設定';
+                    this.el.apiMiniStatus.textContent = '';
+                }
             }
             
             setupSpeechRecognition() {
@@ -625,102 +765,111 @@
                     const usageUrl = `https://api-free.deepl.com/v2/usage?auth_key=${encodeURIComponent(apiKey)}`;
                     
                     let response = null;
-                    let connectionMethod = '';
-                    
-                    for (let i = 0; i < this.corsProxies.length; i++) {
-                        try {
-                            let proxyUrl;
-                            if (this.corsProxies[i].includes('allorigins')) {
-                                proxyUrl = this.corsProxies[i] + encodeURIComponent(usageUrl);
-                            } else {
-                                proxyUrl = this.corsProxies[i] + usageUrl;
-                            }
-                            
-                            response = await fetch(proxyUrl, {
-                                method: 'GET',
-                                headers: { 'Content-Type': 'application/json' }
-                            });
-                            
-                            if (response.ok) {
-                                connectionMethod = `プロキシ ${i + 1} (${this.corsProxies[i].split('/')[2]})`;
-                                break;
-                            }
-                        } catch (error) {
-                            continue;
-                        }
-                    }
-                    
-                    if (!response || !response.ok) {
-                        throw new Error(`接続失敗 (${response?.status || 'unknown'})`);
-                    }
-                    
-                    let usage;
-                    const responseText = await response.text();
-                    
-                    try {
-                        if (responseText.includes('"contents"')) {
-                            const proxyData = JSON.parse(responseText);
-                            usage = JSON.parse(proxyData.contents);
-                        } else {
-                            usage = JSON.parse(responseText);
-                        }
-                    } catch (parseError) {
-                        throw new Error('APIレスポンスの解析に失敗しました');
-                    }
-                    
-                    this.apiKey = apiKey;
-                    localStorage.setItem('translation_api_key', apiKey);
-                    this.apiValid = true;
-                    
-                    const used = usage.character_count || 0;
-                    const limit = usage.character_limit || 500000;
-                    const remaining = limit - used;
-                    const percentage = limit > 0 ? ((used / limit) * 100).toFixed(1) : 0;
-                    
-                    this.el.apiStatus.className = 'api-status success';
-                    this.el.apiStatus.innerHTML = `
-                        ✅ <strong>翻訳API接続成功！</strong><br>
-                        📊 使用状況: ${used.toLocaleString()} / ${limit.toLocaleString()} 文字 (${percentage}%)<br>
-                        📝 残り: ${remaining.toLocaleString()} 文字<br>
-                        🔧 接続方法: ${connectionMethod}
-                        <div class="usage-bar">
-                            <div class="usage-progress" style="width: ${percentage}%"></div>
-                        </div>
-                    `;
-                    
-                    this.enableApp();
-                    this.showSuccess('✅ 翻訳APIが利用可能になりました！翻訳履歴は1000文字まで自動保持されます。');
-                    
-                } catch (error) {
-                    this.apiValid = false;
-                    this.el.apiStatus.className = 'api-status error';
-                    this.el.apiStatus.innerHTML = `
-                        ❌ <strong>翻訳API接続失敗</strong><br>
-                        エラー詳細: ${error.message}<br>
-                        <small>
-                            🔧 <strong>解決策:</strong><br>
-                            ✅ APIキーの形式を再確認してください<br>
-                            ✅ 使用量制限を確認してください<br>
-                            ✅ しばらく時間をおいて再試行してください
-                        </small>
-                    `;
-                } finally {
-                    this.el.testBtn.disabled = false;
-                    this.el.testBtn.innerHTML = '🧪 接続テスト';
-                }
-            }
-            
-            enableApp() {
-                this.el.recordBtn.disabled = false;
-                this.el.recordBtn.innerHTML = '🎤<br>音声開始';
-                this.el.status.textContent = 'マイクボタンを押して話してください';
-            }
-            
-            async translateText(text) {
-                if (this.isTranslating || !this.apiValid) return;
-                
-                this.isTranslating = true
-            this.el.status.innerHTML = '🌍 翻訳中... <span class="loading">⏳</span>';
+                   let connectionMethod = '';
+                   
+                   for (let i = 0; i < this.corsProxies.length; i++) {
+                       try {
+                           let proxyUrl;
+                           if (this.corsProxies[i].includes('allorigins')) {
+                               proxyUrl = this.corsProxies[i] + encodeURIComponent(usageUrl);
+                           } else {
+                               proxyUrl = this.corsProxies[i] + usageUrl;
+                           }
+                           
+                           response = await fetch(proxyUrl, {
+                               method: 'GET',
+                               headers: { 'Content-Type': 'application/json' }
+                           });
+                           
+                           if (response.ok) {
+                               connectionMethod = `プロキシ ${i + 1} (${this.corsProxies[i].split('/')[2]})`;
+                               break;
+                           }
+                       } catch (error) {
+                           continue;
+                       }
+                   }
+                   
+                   if (!response || !response.ok) {
+                       throw new Error(`接続失敗 (${response?.status || 'unknown'})`);
+                   }
+                   
+                   let usage;
+                   const responseText = await response.text();
+                   
+                   try {
+                       if (responseText.includes('"contents"')) {
+                           const proxyData = JSON.parse(responseText);
+                           usage = JSON.parse(proxyData.contents);
+                       } else {
+                           usage = JSON.parse(responseText);
+                       }
+                   } catch (parseError) {
+                       throw new Error('APIレスポンスの解析に失敗しました');
+                   }
+                   
+                   this.apiKey = apiKey;
+                   localStorage.setItem('translation_api_key', apiKey);
+                   this.apiValid = true;
+                   
+                   const used = usage.character_count || 0;
+                   const limit = usage.character_limit || 500000;
+                   const remaining = limit - used;
+                   const percentage = limit > 0 ? ((used / limit) * 100).toFixed(1) : 0;
+                   
+                   this.el.apiStatus.className = 'api-status success';
+                   this.el.apiStatus.innerHTML = `
+                       ✅ <strong>翻訳API接続成功！</strong><br>
+                       📊 使用状況: ${used.toLocaleString()} / ${limit.toLocaleString()} 文字 (${percentage}%)<br>
+                       📝 残り: ${remaining.toLocaleString()} 文字<br>
+                       🔧 接続方法: ${connectionMethod}
+                       <div class="usage-bar">
+                           <div class="usage-progress" style="width: ${percentage}%"></div>
+                       </div>
+                   `;
+                   
+                   this.enableApp();
+                   this.updateApiPanelDisplay();
+                   this.showSuccess('✅ 翻訳APIが利用可能になりました！翻訳履歴は1000文字まで自動保持されます。');
+                   
+                   // API設定成功時に自動で最小化
+                   setTimeout(() => {
+                       if (!this.apiCollapsed) {
+                           this.toggleApiPanel();
+                       }
+                   }, 3000);
+                   
+               } catch (error) {
+                   this.apiValid = false;
+                   this.updateApiPanelDisplay();
+                   this.el.apiStatus.className = 'api-status error';
+                   this.el.apiStatus.innerHTML = `
+                       ❌ <strong>翻訳API接続失敗</strong><br>
+                       エラー詳細: ${error.message}<br>
+                       <small>
+                           🔧 <strong>解決策:</strong><br>
+                           ✅ APIキーの形式を再確認してください<br>
+                           ✅ 使用量制限を確認してください<br>
+                           ✅ しばらく時間をおいて再試行してください
+                       </small>
+                   `;
+               } finally {
+                   this.el.testBtn.disabled = false;
+                   this.el.testBtn.innerHTML = '🧪 接続テスト';
+               }
+           }
+           
+           enableApp() {
+               this.el.recordBtn.disabled = false;
+               this.el.recordBtn.innerHTML = '🎤<br>音声開始';
+               this.el.status.textContent = 'マイクボタンを押して話してください';
+           }
+           
+           async translateText(text) {
+               if (this.isTranslating || !this.apiValid) return;
+               
+               this.isTranslating = true;
+               this.el.status.innerHTML = '🌍 翻訳中... <span class="loading">⏳</span>';
                this.el.translatedText.innerHTML = '<span class="loading">🔄</span> 翻訳中...';
                
                try {
