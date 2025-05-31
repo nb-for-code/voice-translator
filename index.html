@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高機能音声翻訳アプリ</title>
+    <title>音声翻訳アプリ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -91,7 +91,7 @@
         
         .api-content {
             padding: 0 25px 25px 25px;
-            max-height: 500px;
+            max-height: 800px;
             overflow: hidden;
             transition: all 0.4s ease;
         }
@@ -203,6 +203,26 @@
             display: block;
         }
         
+        .device-compatibility {
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            border: 2px solid #4caf50;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #2e7d32;
+            font-size: 14px;
+        }
+        
+        .ios-warning {
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #f57f17;
+            font-size: 14px;
+        }
+        
         .audio-mode-selector {
             display: flex;
             justify-content: center;
@@ -269,24 +289,14 @@
             font-size: 14px;
         }
         
-        .ios-warning {
-            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
-            border: 2px solid #ffc107;
-            border-radius: 12px;
-            padding: 15px;
-            margin: 15px 0;
-            color: #f57f17;
-            font-size: 14px;
-        }
-        
-        .compatibility-info {
-            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
-            border: 2px solid #4caf50;
-            border-radius: 12px;
-            padding: 15px;
-            margin: 15px 0;
-            color: #2e7d32;
-            font-size: 14px;
+        .limitation-notice {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border: 2px solid #f44336;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            color: #c62828;
+            font-size: 13px;
         }
         
         .audio-visualizer {
@@ -350,14 +360,8 @@
         }
         
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .status {
@@ -532,14 +536,8 @@
         }
         
         @keyframes fadeInTop {
-            from {
-                opacity: 0;
-                transform: translateY(-5px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .char-counter {
@@ -567,80 +565,28 @@
             color: #ff9800;
         }
         
-        .unsupported-warning {
-            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-            border: 2px solid #f44336;
-            border-radius: 12px;
-            padding: 15px;
-            margin: 15px 0;
-            color: #c62828;
-            font-size: 14px;
-        }
-        
         @media (max-width: 768px) {
-            .container { 
-                padding: 20px; 
-            }
-            
-            .text-section { 
-                grid-template-columns: 1fr; 
-            }
-            
-            .api-input-row { 
-                flex-direction: column; 
-                align-items: stretch; 
-            }
-            
-            .api-input-row input { 
-                min-width: auto; 
-                margin-bottom: 10px; 
-            }
-            
-            .translation-history { 
-                max-height: 200px; 
-            }
-            
-            .api-header { 
-                padding: 15px 20px; 
-            }
-            
-            .api-content { 
-                padding: 0 20px 20px 20px; 
-            }
-            
-            .api-setup.collapsed .api-content { 
-                padding: 0 20px; 
-            }
-            
-            .audio-mode-selector {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .mode-btn {
-                min-width: 200px;
-            }
-            
-            .lang-selector {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            select {
-                min-width: 200px;
-            }
-            
-            h1 {
-                font-size: 1.5rem;
-            }
+            .container { padding: 20px; }
+            .text-section { grid-template-columns: 1fr; }
+            .api-input-row { flex-direction: column; align-items: stretch; }
+            .api-input-row input { min-width: auto; margin-bottom: 10px; }
+            .translation-history { max-height: 200px; }
+            .api-header { padding: 15px 20px; }
+            .api-content { padding: 0 20px 20px 20px; }
+            .api-setup.collapsed .api-content { padding: 0 20px; }
+            .audio-mode-selector { flex-direction: column; align-items: center; }
+            .mode-btn { min-width: 200px; }
+            .lang-selector { flex-direction: column; gap: 10px; }
+            select { min-width: 200px; }
+            h1 { font-size: 1.5rem; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎤 高機能音声翻訳アプリ</h1>
+        <h1>🎤 音声翻訳アプリ</h1>
         
-        <!-- API設定セクション（トグル対応） -->
+        <!-- API設定セクション -->
         <div class="api-setup" id="apiSetup">
             <div class="api-header" id="apiHeader">
                 <h3>
@@ -653,8 +599,7 @@
             
             <div class="api-content" id="apiContent">
                 <p class="api-description">
-                    翻訳APIキーを設定すると、最高品質の翻訳が利用できます（月50万文字まで無料）<br>
-                    <strong>🔧 CORS問題完全解決済み</strong>
+                    翻訳APIキーを設定すると、最高品質の翻訳が利用できます（月50万文字まで無料）
                 </p>
                 
                 <div class="api-input-row">
@@ -670,28 +615,29 @@
                 <div class="api-status warning" id="apiStatus">
                     ⚠️ 翻訳APIキーが設定されていません。設定すると最高品質の翻訳が利用できます。
                 </div>
+                
+                <!-- デバイス互換性情報をAPI設定内に移動 -->
+                <div class="device-compatibility" id="deviceCompatibility">
+                    <strong>🔍 デバイス対応状況を確認中...</strong>
+                </div>
             </div>
-        </div>
-        
-        <!-- デバイス互換性情報 -->
-        <div class="compatibility-info" id="compatibilityInfo">
-            <strong>🔍 デバイス対応状況</strong>
         </div>
         
         <!-- 音声入力モード選択 -->
         <div class="audio-mode-selector">
-            <button class="mode-btn active" id="micModeBtn">
-                🎤 マイク音声
-            </button>
-            <button class="mode-btn" id="systemModeBtn">
-                🔊 システム音声
-            </button>
+            <button class="mode-btn active" id="micModeBtn">🎤 マイク音声</button>
+            <button class="mode-btn" id="systemModeBtn">🔊 システム音声</button>
         </div>
         
         <!-- システム音声コントロール -->
         <div class="system-audio-controls" id="systemAudioControls">
-            <h3>🔊 システム音声翻訳</h3>
-            <p>ブラウザで再生される音声（YouTube、会議、音楽など）をリアルタイム翻訳します</p>
+            <h3>🔊 システム音声可視化</h3>
+            <p>ブラウザで再生される音声レベルを可視化します</p>
+            
+            <div class="limitation-notice">
+                ⚠️ <strong>制限事項</strong>: システム音声の自動翻訳は技術的制限により現在未対応です。<br>
+                💡 <strong>代替案</strong>: 仮想音声ケーブル（VB-Cable等）+ マイク音声モードをご利用ください。
+            </div>
             
             <button class="capture-btn" id="startSystemCapture">🎵 システム音声共有を開始</button>
             
@@ -699,9 +645,7 @@
                 <div class="audio-bars" id="audioBars"></div>
             </div>
             
-            <div class="audio-level-indicator" id="audioLevelIndicator">
-                音声レベル: 待機中
-            </div>
+            <div class="audio-level-indicator" id="audioLevelIndicator">音声レベル: 待機中</div>
         </div>
         
         <div class="status" id="status">翻訳APIキーを設定してから音声翻訳を開始してください</div>
@@ -768,13 +712,12 @@
                 this.isRecording = false;
                 this.isTranslating = false;
                 this.recognition = null;
-                this.systemRecognition = null;
                 this.translationHistory = [];
                 this.maxHistoryLength = 1000;
                 this.apiCollapsed = localStorage.getItem('api_collapsed') === 'true';
                 
-                // システム音声関連
-                this.currentMode = 'microphone'; // 'microphone' or 'system'
+                // システム音声関連（可視化のみ）
+                this.currentMode = 'microphone';
                 this.systemAudioStream = null;
                 this.audioContext = null;
                 this.audioAnalyser = null;
@@ -807,6 +750,7 @@
             
             setupElements() {
                 this.el = {
+                    // API設定
                     apiSetup: document.getElementById('apiSetup'),
                     apiHeader: document.getElementById('apiHeader'),
                     toggleBtn: document.getElementById('toggleBtn'),
@@ -817,7 +761,9 @@
                     apiKey: document.getElementById('apiKey'),
                     testBtn: document.getElementById('testBtn'),
                     apiStatus: document.getElementById('apiStatus'),
-                    compatibilityInfo: document.getElementById('compatibilityInfo'),
+                    deviceCompatibility: document.getElementById('deviceCompatibility'),
+                    
+                    // 音声モード
                     micModeBtn: document.getElementById('micModeBtn'),
                     systemModeBtn: document.getElementById('systemModeBtn'),
                     systemAudioControls: document.getElementById('systemAudioControls'),
@@ -825,6 +771,8 @@
                     audioVisualizer: document.getElementById('audioVisualizer'),
                     audioBars: document.getElementById('audioBars'),
                     audioLevelIndicator: document.getElementById('audioLevelIndicator'),
+                    
+                    // メイン機能
                     recordBtn: document.getElementById('recordBtn'),
                     status: document.getElementById('status'),
                     originalText: document.getElementById('originalText'),
@@ -839,46 +787,38 @@
             }
             
             setupEventListeners() {
-                // API設定のトグル
+                // API設定
                 this.el.apiHeader.addEventListener('click', () => this.toggleApiPanel());
                 this.el.toggleBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.toggleApiPanel();
-                });
-                
-                this.el.testBtn.addEventListener('click', () => this.testAPI());
-                this.el.apiKey.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        this.testAPI();
-                    }
-                });
-                
-                this.el.recordBtn.addEventListener('click', () => this.toggleRecording());
-                
-                this.el.fromLang.addEventListener('change', () => {
-                    if (this.recognition) {
-                        this.recognition.lang = this.getSpeechLang();
-                        if (this.isRecording) {
-                            this.stopRecording();
-                            setTimeout(() => this.startRecording(), 100);
-                       }
+                   e.stopPropagation();
+                   this.toggleApiPanel();
+               });
+               
+               this.el.testBtn.addEventListener('click', () => this.testAPI());
+               this.el.apiKey.addEventListener('keydown', (e) => {
+                   if (e.key === 'Enter') {
+                       e.preventDefault();
+                       this.testAPI();
                    }
-                   if (this.systemRecognition && this.isSystemCapturing) {
-                       this.systemRecognition.lang = this.getSpeechLang();
+               });
+               
+               // メイン機能
+               this.el.recordBtn.addEventListener('click', () => this.toggleRecording());
+               
+               this.el.fromLang.addEventListener('change', () => {
+                   if (this.recognition) {
+                       this.recognition.lang = this.getSpeechLang();
+                       if (this.isRecording) {
+                           this.stopRecording();
+                           setTimeout(() => this.startRecording(), 100);
+                       }
                    }
                });
            }
            
            setupAudioModeSelector() {
-               this.el.micModeBtn.addEventListener('click', () => {
-                   this.switchToMicrophoneMode();
-               });
-               
-               this.el.systemModeBtn.addEventListener('click', () => {
-                   this.switchToSystemMode();
-               });
-               
+               this.el.micModeBtn.addEventListener('click', () => this.switchToMicrophoneMode());
+               this.el.systemModeBtn.addEventListener('click', () => this.switchToSystemMode());
                this.el.startSystemCapture.addEventListener('click', () => {
                    if (this.isSystemCapturing) {
                        this.stopSystemAudioCapture();
@@ -916,20 +856,15 @@
                    this.stopRecording();
                }
                
-               this.el.status.textContent = this.apiValid ? 'システム音声共有ボタンを押して開始してください' : '翻訳APIキーを設定してからシステム音声翻訳を開始してください';
+               this.el.status.textContent = this.apiValid ? 'システム音声共有ボタンを押して音声レベルを可視化してください' : '翻訳APIキーを設定してからシステム音声の可視化を開始してください';
            }
            
            async startSystemAudioCapture() {
-               if (!this.apiValid) {
-                   this.showError('先に翻訳APIキーを設定してください');
-                   return;
-               }
-               
                try {
                    this.el.startSystemCapture.disabled = true;
                    this.el.startSystemCapture.textContent = '🔄 システム音声を準備中...';
                    
-                   // システム音声キャプチャ開始
+                   // システム音声キャプチャ開始（可視化のみ）
                    this.systemAudioStream = await navigator.mediaDevices.getDisplayMedia({
                        video: false,
                        audio: {
@@ -946,14 +881,14 @@
                        this.stopSystemAudioCapture();
                    });
                    
-                   this.setupSystemAudioProcessing();
+                   this.setupSystemAudioVisualization();
                    this.isSystemCapturing = true;
                    
                    this.el.startSystemCapture.classList.add('capturing');
                    this.el.startSystemCapture.textContent = '⏹️ システム音声停止';
                    this.el.startSystemCapture.disabled = false;
-                   this.el.status.textContent = '🔊 システム音声をキャプチャ中...';
-                   this.showSuccess('🎵 システム音声キャプチャを開始しました！');
+                   this.el.status.textContent = '🔊 システム音声を可視化中... （翻訳機能は利用できません）';
+                   this.showSuccess('🎵 システム音声の可視化を開始しました！音声の翻訳にはマイクモードをお使いください。');
                    
                } catch (error) {
                    this.el.startSystemCapture.disabled = false;
@@ -969,7 +904,7 @@
                }
            }
            
-           setupSystemAudioProcessing() {
+           setupSystemAudioVisualization() {
                try {
                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                    const source = this.audioContext.createMediaStreamSource(this.systemAudioStream);
@@ -980,116 +915,12 @@
                    this.audioAnalyser.smoothingTimeConstant = 0.8;
                    source.connect(this.audioAnalyser);
                    
-                   // 音声認識の設定
-                   this.setupSystemSpeechRecognition();
-                   
                    // 可視化開始
                    this.startAudioVisualization();
                    
                } catch (error) {
                    this.showError(`音声処理の初期化エラー: ${error.message}`);
                    this.stopSystemAudioCapture();
-               }
-           }
-           
-           setupSystemSpeechRecognition() {
-               if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                   this.showError('音声認識がサポートされていません');
-                   return;
-               }
-               
-               if (this.systemRecognition) {
-                   this.systemRecognition.stop();
-               }
-               
-               const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-               this.systemRecognition = new SpeechRecognition();
-               this.systemRecognition.continuous = true;
-               this.systemRecognition.interimResults = true;
-               this.systemRecognition.lang = this.getSpeechLang();
-               
-               let lastTranscript = '';
-               let silenceTimer = null;
-               
-               this.systemRecognition.onstart = () => {
-                   console.log('System audio recognition started');
-               };
-               
-               this.systemRecognition.onresult = (event) => {
-                   let finalTranscript = '';
-                   let interimTranscript = '';
-                   
-                   for (let i = event.resultIndex; i < event.results.length; i++) {
-                       if (event.results[i].isFinal) {
-                           finalTranscript += event.results[i][0].transcript;
-                       } else {
-                           interimTranscript += event.results[i][0].transcript;
-                       }
-                   }
-                   
-                   const fullTranscript = finalTranscript || interimTranscript;
-                   
-                   if (fullTranscript.trim() && fullTranscript !== lastTranscript) {
-                       this.el.originalText.textContent = `[システム音声] ${fullTranscript}`;
-                       
-                       if (finalTranscript.trim() && !this.isTranslating) {
-                           lastTranscript = finalTranscript.trim();
-                           this.translateText(finalTranscript.trim());
-                       }
-                       
-                       // 無音検出
-                       clearTimeout(silenceTimer);
-                       silenceTimer = setTimeout(() => {
-                           if (this.isSystemCapturing) {
-                               try {
-                                   this.systemRecognition.stop();
-                                   setTimeout(() => {
-                                       if (this.isSystemCapturing) {
-                                           this.systemRecognition.start();
-                                       }
-                                   }, 100);
-                               } catch (error) {
-                                   console.log('Recognition restart error:', error);
-                               }
-                           }
-                       }, 3000);
-                   }
-               };
-               
-               this.systemRecognition.onerror = (event) => {
-                   console.log('System recognition error:', event.error);
-                   if (event.error !== 'no-speech' && this.isSystemCapturing) {
-                       setTimeout(() => {
-                           if (this.isSystemCapturing) {
-                               try {
-                                   this.systemRecognition.start();
-                               } catch (error) {
-                                   console.log('Recognition restart error:', error);
-                               }
-                           }
-                       }, 1000);
-                   }
-               };
-               
-               this.systemRecognition.onend = () => {
-                   if (this.isSystemCapturing) {
-                       setTimeout(() => {
-                           if (this.isSystemCapturing) {
-                               try {
-                                   this.systemRecognition.start();
-                               } catch (error) {
-                                   console.log('Recognition restart error:', error);
-                               }
-                           }
-                       }, 100);
-                   }
-               };
-               
-               // 音声認識開始
-               try {
-                   this.systemRecognition.start();
-               } catch (error) {
-                   console.log('Failed to start system recognition:', error);
                }
            }
            
@@ -1154,11 +985,6 @@
                    this.animationFrame = null;
                }
                
-               if (this.systemRecognition) {
-                   this.systemRecognition.stop();
-                   this.systemRecognition = null;
-               }
-               
                if (this.systemAudioStream) {
                    this.systemAudioStream.getTracks().forEach(track => track.stop());
                    this.systemAudioStream = null;
@@ -1181,7 +1007,7 @@
                }
                
                this.el.audioLevelIndicator.textContent = '音声レベル: 待機中';
-               this.el.status.textContent = 'システム音声共有ボタンを押して開始してください';
+               this.el.status.textContent = 'システム音声共有ボタンを押して音声レベルを可視化してください';
            }
            
            supportsSystemAudio() {
@@ -1189,9 +1015,8 @@
            }
            
            checkDeviceCompatibility() {
-               const compatInfo = this.el.compatibilityInfo;
+               const compatInfo = this.el.deviceCompatibility;
                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-               const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
                const supportsGetDisplayMedia = this.supportsSystemAudio();
                const supportsWebkitSpeechRecognition = 'webkitSpeechRecognition' in window;
                const supportsSpeechRecognition = 'SpeechRecognition' in window;
@@ -1204,7 +1029,7 @@
                            📱 <strong>iOS/iPadOS デバイス検出</strong><br>
                            ✅ マイク音声翻訳: ${supportsWebkitSpeechRecognition ? '完全対応' : '未対応'}<br>
                            ❌ システム音声翻訳: 現在未対応<br>
-                           💡 代替案: AirPods Pro等の外部マイク、音声ケーブル接続、AirPlay経由
+                           🌐 ブラウザ: ${this.getBrowserName()}
                        </div>
                    `;
                    
@@ -1212,26 +1037,12 @@
                    this.el.systemModeBtn.disabled = true;
                    this.el.systemModeBtn.title = 'iOS/iPadOSでは現在サポートされていません';
                    
-               } else if (supportsGetDisplayMedia && (supportsWebkitSpeechRecognition || supportsSpeechRecognition)) {
+               } else {
                    infoHTML = `
                        ✅ <strong>完全対応デバイス</strong><br>
-                       🎤 マイク音声翻訳: 対応<br>
-                       🔊 システム音声翻訳: 対応<br>
+                       🎤 マイク音声翻訳: ${supportsWebkitSpeechRecognition || supportsSpeechRecognition ? '対応' : '未対応'}<br>
+                       🔊 システム音声翻訳: ${supportsGetDisplayMedia ? '対応' : '未対応'}<br>
                        🌐 ブラウザ: ${this.getBrowserName()}
-                   `;
-               } else {
-                   const issues = [];
-                   if (!supportsGetDisplayMedia) issues.push('システム音声キャプチャ');
-                   if (!supportsWebkitSpeechRecognition && !supportsSpeechRecognition) issues.push('音声認識');
-                   
-                   infoHTML = `
-                       <div class="unsupported-warning">
-                           ⚠️ <strong>部分対応</strong><br>
-                           ${supportsWebkitSpeechRecognition || supportsSpeechRecognition ? '✅' : '❌'} マイク音声翻訳: ${supportsWebkitSpeechRecognition || supportsSpeechRecognition ? '対応' : '未対応'}<br>
-                           ${supportsGetDisplayMedia ? '✅' : '❌'} システム音声翻訳: ${supportsGetDisplayMedia ? '対応' : '未対応'}<br>
-                           💡 未対応機能: ${issues.join('、')}<br>
-                           🔧 Chrome/Edge/Firefox最新版の使用を推奨
-                       </div>
                    `;
                    
                    if (!supportsGetDisplayMedia) {
@@ -1494,7 +1305,7 @@
                    
                    this.enableApp();
                    this.updateApiPanelDisplay();
-                   this.showSuccess('✅ 翻訳APIが利用可能になりました！翻訳履歴は1000文字まで自動保持されます。');
+                   this.showSuccess('✅ 翻訳APIが利用可能になりました！');
                    
                    // API設定成功時に自動で最小化
                    setTimeout(() => {
@@ -1530,12 +1341,7 @@
                if (this.currentMode === 'microphone') {
                    this.el.status.textContent = 'マイクボタンを押して話してください';
                } else {
-                   this.el.status.textContent = 'システム音声共有ボタンを押して開始してください';
-               }
-               
-               // システム音声ボタンも有効化（サポートされている場合）
-               if (this.supportsSystemAudio() && !this.el.systemModeBtn.disabled) {
-                   this.el.startSystemCapture.disabled = false;
+                   this.el.status.textContent = 'システム音声共有ボタンを押して音声レベルを可視化してください';
                }
            }
            
@@ -1597,21 +1403,11 @@
                        throw new Error('翻訳結果が見つかりませんでした');
                    }
                    
-                   if (this.currentMode === 'microphone') {
-                       this.el.status.textContent = this.isRecording ? '🎙️ 音声を聞いています...' : 'マイクボタンを押して話してください';
-                   } else {
-                       this.el.status.textContent = this.isSystemCapturing ? '🔊 システム音声をキャプチャ中...' : 'システム音声共有ボタンを押して開始してください';
-                   }
+                   this.el.status.textContent = this.isRecording ? '🎙️ 音声を聞いています...' : 'マイクボタンを押して話してください';
                    
                } catch (error) {
                    this.el.translatedText.textContent = '❌ 翻訳エラーが発生しました';
-                   
-                   if (this.currentMode === 'microphone') {
-                       this.el.status.textContent = 'マイクボタンを押して話してください';
-                   } else {
-                       this.el.status.textContent = 'システム音声共有ボタンを押して開始してください';
-                   }
-                   
+                   this.el.status.textContent = 'マイクボタンを押して話してください';
                    this.showError(`翻訳エラー: ${error.message}`);
                } finally {
                    this.isTranslating = false;
@@ -1681,7 +1477,7 @@
        // アプリ初期化
        document.addEventListener('DOMContentLoaded', () => {
            new VoiceTranslator();
-           console.log('🎉 高機能音声翻訳アプリが起動しました！');
+           console.log('🎉 音声翻訳アプリが起動しました！');
        });
        
        // パフォーマンス測定
@@ -1691,21 +1487,21 @@
        
        // ページ離脱時のクリーンアップ
        window.addEventListener('beforeunload', () => {
-           if (window.voiceTranslator) {
-               if (window.voiceTranslator.isSystemCapturing) {
-                   window.voiceTranslator.stopSystemAudioCapture();
+           if (window.voiceTranslatorInstance) {
+               if (window.voiceTranslatorInstance.isSystemCapturing) {
+                   window.voiceTranslatorInstance.stopSystemAudioCapture();
                }
-               if (window.voiceTranslator.isRecording) {
-                   window.voiceTranslator.stopRecording();
+               if (window.voiceTranslatorInstance.isRecording) {
+                   window.voiceTranslatorInstance.stopRecording();
                }
            }
        });
        
-       // グローバルアクセス用（デバッグ）
+       // グローバルアクセス用
        let voiceTranslatorInstance = null;
        document.addEventListener('DOMContentLoaded', () => {
            voiceTranslatorInstance = new VoiceTranslator();
-           window.voiceTranslator = voiceTranslatorInstance;
+           window.voiceTranslatorInstance = voiceTranslatorInstance;
        });
    </script>
 </body>
