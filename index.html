@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高精度音声翻訳アプリ</title>
+    <title>音声翻訳アプリ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -260,7 +260,7 @@
             display: none;
         }
         
-        /* 翻訳履歴セクション - シンプル版 */
+        /* 翻訳履歴セクション - 自動削除版 */
         .translation-history {
             background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
             border-radius: 12px;
@@ -277,9 +277,6 @@
             font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 1px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
         
         .translation-content {
@@ -319,24 +316,6 @@
             border-top: 1px solid rgba(156, 39, 176, 0.2);
         }
         
-        .clear-btn {
-            padding: 6px 12px;
-            background: #9c27b0;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: all 0.3s ease;
-        }
-        
-        .clear-btn:hover {
-            background: #7b1fa2;
-            transform: translateY(-1px);
-        }
-        
         .loading { animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
@@ -351,13 +330,13 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎤 高精度音声翻訳アプリ</h1>
+        <h1>🎤 音声翻訳アプリ</h1>
         
         <!-- API設定セクション -->
         <div class="api-setup">
             <h3>🔑 翻訳API設定</h3>
             <p style="margin-bottom: 15px; color: #1565c0; font-size: 14px;">
-                高精度翻訳APIキーを設定すると、最高品質の翻訳が利用できます（月50万文字まで無料）<br>
+                翻訳APIキーを設定すると、最高品質の翻訳が利用できます（月50万文字まで無料）<br>
                 <strong>🔧 CORS問題完全解決済み</strong>
             </p>
             
@@ -372,7 +351,7 @@
             </div>
             
             <div class="api-status warning" id="apiStatus">
-                ⚠️ 翻訳APIキーが設定されていません。設定すると最高精度の翻訳が利用できます。
+                ⚠️ 翻訳APIキーが設定されていません。設定すると最高品質の翻訳が利用できます。
             </div>
         </div>
         
@@ -382,8 +361,8 @@
         
         <div class="lang-selector">
             <select id="fromLang">
-                <option value="JA">🇯🇵 日本語</option>
                 <option value="EN">🇺🇸 English</option>
+                <option value="JA">🇯🇵 日本語</option>
                 <option value="KO">🇰🇷 한국어</option>
                 <option value="ZH">🇨🇳 中文</option>
                 <option value="FR">🇫🇷 Français</option>
@@ -395,8 +374,8 @@
             </select>
             <span style="font-size: 1.5rem; color: #2196f3; font-weight: bold;">→</span>
             <select id="toLang">
-                <option value="EN">🇺🇸 English</option>
                 <option value="JA">🇯🇵 日本語</option>
+                <option value="EN">🇺🇸 English</option>
                 <option value="KO">🇰🇷 한국어</option>
                 <option value="ZH">🇨🇳 中文</option>
                 <option value="FR">🇫🇷 Français</option>
@@ -425,12 +404,9 @@
         <div class="error" id="error"></div>
         <div class="success" id="success"></div>
         
-        <!-- 翻訳履歴セクション - シンプル版 -->
+        <!-- 翻訳履歴セクション - 自動削除版 -->
         <div class="translation-history">
-            <h3>
-                📚 翻訳履歴（最大1000文字）
-                <button class="clear-btn" id="clearBtn">🗑️ クリア</button>
-            </h3>
+            <h3>📚 翻訳履歴（自動削除：1000文字まで）</h3>
             <div class="translation-content" id="translationHistory">翻訳結果がここに蓄積されます...</div>
             <div class="char-counter" id="charCounter">0 / 1000 文字</div>
         </div>
@@ -479,7 +455,6 @@
                     translatedText: document.getElementById('translatedText'),
                     translationHistory: document.getElementById('translationHistory'),
                     charCounter: document.getElementById('charCounter'),
-                    clearBtn: document.getElementById('clearBtn'),
                     error: document.getElementById('error'),
                     success: document.getElementById('success'),
                     fromLang: document.getElementById('fromLang'),
@@ -497,7 +472,6 @@
                 });
                 
                 this.el.recordBtn.addEventListener('click', () => this.toggleRecording());
-                this.el.clearBtn.addEventListener('click', () => this.clearHistory());
                 
                 this.el.fromLang.addEventListener('change', () => {
                     if (this.recognition) {
@@ -576,11 +550,11 @@
                 };
                 
                 this.translationHistory.unshift(entry);
-                this.trimHistoryToLimit();
+                this.autoTrimHistory();
                 this.updateHistoryDisplay();
             }
             
-            trimHistoryToLimit() {
+            autoTrimHistory() {
                 let totalLength = this.translationHistory.reduce((sum, entry) => sum + entry.text.length + 1, 0);
                 
                 while (totalLength > this.maxHistoryLength && this.translationHistory.length > 1) {
@@ -612,19 +586,13 @@
                 this.el.translationHistory.scrollTop = 0;
             }
             
-            clearHistory() {
-                this.translationHistory = [];
-                this.updateHistoryDisplay();
-                this.showSuccess('📚 翻訳履歴をクリアしました');
-            }
-            
             getSpeechLang() {
                 const langMap = {
-                    'JA': 'ja-JP', 'EN': 'en-US', 'KO': 'ko-KR', 'ZH': 'zh-CN',
+                    'EN': 'en-US', 'JA': 'ja-JP', 'KO': 'ko-KR', 'ZH': 'zh-CN',
                     'FR': 'fr-FR', 'ES': 'es-ES', 'DE': 'de-DE', 'IT': 'it-IT',
                     'PT': 'pt-PT', 'RU': 'ru-RU'
                 };
-                return langMap[this.el.fromLang.value] || 'ja-JP';
+                return langMap[this.el.fromLang.value] || 'en-US';
             }
             
             isValidAPIKey(key) {
@@ -721,7 +689,7 @@
                     `;
                     
                     this.enableApp();
-                    this.showSuccess('✅ 高精度翻訳APIが利用可能になりました！翻訳履歴も1000文字まで保持されます。');
+                    this.showSuccess('✅ 翻訳APIが利用可能になりました！翻訳履歴は1000文字まで自動保持されます。');
                     
                 } catch (error) {
                     this.apiValid = false;
@@ -739,20 +707,20 @@
                 } finally {
                     this.el.testBtn.disabled = false;
                     this.el.testBtn.innerHTML = '🧪 接続テスト';
-               }
-           }
-           
-           enableApp() {
-               this.el.recordBtn.disabled = false;
-               this.el.recordBtn.innerHTML = '🎤<br>音声開始';
-               this.el.status.textContent = 'マイクボタンを押して話してください';
-           }
-           
-           async translateText(text) {
-               if (this.isTranslating || !this.apiValid) return;
-               
-               this.isTranslating = true;
-               this.el.status.innerHTML = '🌍 翻訳中... <span class="loading">⏳</span>';
+                }
+            }
+            
+            enableApp() {
+                this.el.recordBtn.disabled = false;
+                this.el.recordBtn.innerHTML = '🎤<br>音声開始';
+                this.el.status.textContent = 'マイクボタンを押して話してください';
+            }
+            
+            async translateText(text) {
+                if (this.isTranslating || !this.apiValid) return;
+                
+                this.isTranslating = true
+            this.el.status.innerHTML = '🌍 翻訳中... <span class="loading">⏳</span>';
                this.el.translatedText.innerHTML = '<span class="loading">🔄</span> 翻訳中...';
                
                try {
@@ -874,7 +842,7 @@
        
        document.addEventListener('DOMContentLoaded', () => {
            new VoiceTranslator();
-           console.log('🎉 高精度音声翻訳アプリが起動しました！');
+           console.log('🎉 音声翻訳アプリが起動しました！');
        });
        
        window.addEventListener('load', () => {
