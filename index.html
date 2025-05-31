@@ -261,6 +261,10 @@
             box-shadow: 0 5px 15px rgba(149, 165, 166, 0.3);
         }
         
+        .record-btn.listening {
+            background: linear-gradient(45deg, #4caf50, #45a049);
+        }
+        
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
@@ -417,6 +421,25 @@
             100% { transform: rotate(360deg); } 
         }
         
+        .status-indicator {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-indicator.listening {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .status-indicator.waiting {
+            background: #ff9800;
+            color: white;
+        }
+        
         @media (max-width: 768px) {
             .container { padding: 20px; }
             .text-section { grid-template-columns: 1fr; }
@@ -540,7 +563,9 @@
                 this.translationHistory = [];
                 this.maxHistoryLength = 1000;
                 this.apiCollapsed = localStorage.getItem('api_collapsed') === 'true';
-                this.recognitionStarting = false; // 音声認識開始中フラグ
+                this.recognitionStarting = false;
+                this.restartTimeout = null;
+                this.lastActivity = Date.now();
                 
                 this.corsProxies = [
                     'https://api.allorigins.win/raw?url=',
@@ -695,16 +720,19 @@
                 
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 this.recognition = new SpeechRecognition();
-                this.recognition.continuous = false; // 連続モードを無効化
+                this.recognition.continuous = true; // 連続モードに戻す
                 this.recognition.interimResults = true;
                 this.recognition.lang = this.getSpeechLang();
                 
                 this.recognition.onstart = () => {
                     this.recognitionStarting = false;
-                    this.el.status.innerHTML = '🎙️ 音声を聞いています... <span class="loading">⏳</span>';
+                    this.lastActivity = Date.now();
+                    this.el.status.innerHTML = '🎙️ 音声を聞いています... <span class="status-indicator listening">聞き取り中</span>';
+                    this.el.recordBtn.classList.add('listening');
                 };
                 
                 this.recognition.onresult = (event) => {
+                    this.lastActivity = Date.now();
                     let finalTranscript = '';
                     let interimTranscript = '';
                     
@@ -719,6 +747,11 @@
                     const displayText = finalTranscript || interimTranscript;
                     if (displayText.trim()) {
                         this.el.originalText.textContent = displayText;
+                        
+                        // リアルタイムで音声認識中であることを表示
+                        if (interimTranscript && !finalTranscript) {
+                            this.el.status.innerHTML = '🎙️ 音声認識中... <span class="status-indicator listening">処理中</span>';
+                        }
                     }
                     
                     if (finalTranscript.trim() && !this.isTranslating) {
@@ -728,54 +761,83 @@
                 
                 this.recognition.onerror = (event) => {
                     this.recognitionStarting = false;
+                    this.el.recordBtn.classList.remove('listening');
+                    
+                    // 継続可能なエラーと致命的なエラーを区別
+                    const continuableErrors = ['no-speech', 'audio-capture', 'network'];
                     
                     if (event.error === 'aborted') {
-                        // abortedエラーは無視（ユーザーが停止した場合）
-                        return;
-                    }
-                    
-                    const errorMessages = {
-                        'not-allowed': 'マイクのアクセスが拒否されました',
-                        'no-speech': '音声が検出されませんでした',
-                        'network': 'ネットワークエラーが発生しました',
-                        'service-not-allowed': 'HTTPSでアクセスしてください'
-                    };
-                    
-                    this.showError(`音声認識エラー: ${errorMessages[event.error] || event.error}`);
-                    this.stopRecording();
-                };
-                
-                this.recognition.onend = () => {
-                    this.recognitionStarting = false;
-                    
-                    if (this.isRecording) {
-                        // 自動で再開（短い間隔で）
-                        setTimeout(() => {
-                            if (this.isRecording && !this.recognitionStarting) {
-                                this.startRecognition();
-                            }
-                        }, 100);
-                    }
-                };
-            }
-            
-            startRecognition() {
-                if (this.recognitionStarting || !this.recognition) {
-                    return;
-                }
-                
-                try {
-                    this.recognitionStarting = true;
-                    this.recognition.start();
-                } catch (error) {
-                    this.recognitionStarting = false;
-                    if (error.name !== 'InvalidStateError') {
-                        this.showError('音声認識の開始に失敗しました');
-                        this.stopRecording();
-                    }
-                }
-            }
-            toggleRecording() {
+                       // abortedエラーは無視（ユーザーが停止した場合）
+                       return;
+                   }
+                   
+                   if (continuableErrors.includes(event.error)) {
+                       // 継続可能なエラーは自動で再開
+                       console.log(`Continuable error: ${event.error}, restarting...`);
+                       this.el.status.innerHTML = '🔄 音声認識を再開中... <span class="status-indicator waiting">待機中</span>';
+                       
+                       if (this.isRecording) {
+                           this.scheduleRestart();
+                       }
+                       return;
+                   }
+                   
+                   // 致命的なエラーのみ表示
+                   const errorMessages = {
+                       'not-allowed': 'マイクのアクセスが拒否されました',
+                       'service-not-allowed': 'HTTPSでアクセスしてください',
+                       'language-not-supported': '選択された言語がサポートされていません'
+                   };
+                   
+                   this.showError(`音声認識エラー: ${errorMessages[event.error] || event.error}`);
+                   this.stopRecording();
+               };
+               
+               this.recognition.onend = () => {
+                   this.recognitionStarting = false;
+                   this.el.recordBtn.classList.remove('listening');
+                   
+                   if (this.isRecording) {
+                       // 自動で再開
+                       this.scheduleRestart();
+                   }
+               };
+           }
+           
+           scheduleRestart() {
+               if (this.restartTimeout) {
+                   clearTimeout(this.restartTimeout);
+               }
+               
+               // 短い間隔で再開
+               this.restartTimeout = setTimeout(() => {
+                   if (this.isRecording && !this.recognitionStarting) {
+                       this.startRecognition();
+                   }
+               }, 500);
+           }
+           
+           startRecognition() {
+               if (this.recognitionStarting || !this.recognition || !this.isRecording) {
+                   return;
+               }
+               
+               try {
+                   this.recognitionStarting = true;
+                   this.recognition.start();
+               } catch (error) {
+                   this.recognitionStarting = false;
+                   if (error.name !== 'InvalidStateError') {
+                       console.log(`Recognition start error: ${error.name}`);
+                       // エラーが発生しても再試行
+                       if (this.isRecording) {
+                           this.scheduleRestart();
+                       }
+                   }
+               }
+           }
+           
+           toggleRecording() {
                if (this.isRecording) {
                    this.stopRecording();
                } else {
@@ -800,11 +862,16 @@
                this.isRecording = false;
                this.recognitionStarting = false;
                
+               if (this.restartTimeout) {
+                   clearTimeout(this.restartTimeout);
+                   this.restartTimeout = null;
+               }
+               
                if (this.recognition) {
                    this.recognition.stop();
                }
                
-               this.el.recordBtn.classList.remove('recording');
+               this.el.recordBtn.classList.remove('recording', 'listening');
                this.el.recordBtn.innerHTML = '🎤<br>音声開始';
                this.el.status.textContent = 'マイクボタンを押して話してください';
            }
@@ -1006,11 +1073,16 @@
                        throw new Error('翻訳結果が見つかりませんでした');
                    }
                    
-                   this.el.status.textContent = this.isRecording ? '🎙️ 音声を聞いています...' : 'マイクボタンを押して話してください';
+                   // 翻訳完了後、音声認識の状態に応じてステータスを更新
+                   if (this.isRecording) {
+                       this.el.status.innerHTML = '🎙️ 音声を聞いています... <span class="status-indicator listening">聞き取り中</span>';
+                   } else {
+                       this.el.status.textContent = 'マイクボタンを押して話してください';
+                   }
                    
                } catch (error) {
                    this.el.translatedText.textContent = '❌ 翻訳エラーが発生しました';
-                   this.el.status.textContent = 'マイクボタンを押して話してください';
+                   this.el.status.textContent = this.isRecording ? '🎙️ 音声を聞いています...' : 'マイクボタンを押して話してください';
                    this.showError(`翻訳エラー: ${error.message}`);
                } finally {
                    this.isTranslating = false;
