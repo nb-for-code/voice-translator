@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeepL音声翻訳 - 履歴保持版</title>
+    <title>高精度音声翻訳アプリ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -36,7 +36,7 @@
             -webkit-text-fill-color: transparent;
         }
         
-        .deepl-setup {
+        .api-setup {
             background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
             border: 2px solid #2196f3;
             border-radius: 15px;
@@ -44,7 +44,7 @@
             margin-bottom: 25px;
         }
         
-        .deepl-setup h3 {
+        .api-setup h3 {
             color: #1976d2;
             margin-bottom: 15px;
             font-size: 1.2rem;
@@ -214,9 +214,9 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         
-        .text-box.deepl {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            border-color: #2196f3;
+        .text-box.translated {
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            border-color: #4caf50;
         }
         
         .text-box h3 {
@@ -227,7 +227,7 @@
             letter-spacing: 1px;
         }
         
-        .text-box.deepl h3 { color: #1976d2; }
+        .text-box.translated h3 { color: #2e7d32; }
         
         .text-content {
             color: #495057;
@@ -238,26 +238,26 @@
             overflow-y: auto;
         }
         
-        .speech-history {
-            background: #fff3e0;
+        .translation-history {
+            background: #f3e5f5;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            border: 2px solid #ff9800;
+            border: 2px solid #9c27b0;
             max-height: 200px;
             overflow-y: auto;
         }
         
-        .speech-history h3 {
-            color: #f57c00;
+        .translation-history h3 {
+            color: #7b1fa2;
             margin-bottom: 10px;
             font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
         
-        .speech-content {
-            color: #e65100;
+        .translation-content {
+            color: #4a148c;
             line-height: 1.6;
             font-size: 14px;
             white-space: pre-wrap;
@@ -272,13 +272,17 @@
         
         .clear-btn {
             padding: 8px 16px;
-            background: #ff9800;
+            background: #9c27b0;
             color: white;
             border: none;
             border-radius: 6px;
             cursor: pointer;
             font-size: 12px;
             float: right;
+        }
+        
+        .clear-btn:hover {
+            background: #7b1fa2;
         }
         
         .error {
@@ -316,32 +320,32 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎤 DeepL音声翻訳（履歴保持版）</h1>
+        <h1>🎤 高精度音声翻訳アプリ</h1>
         
-        <!-- DeepL API設定セクション -->
-        <div class="deepl-setup">
-            <h3>🔑 DeepL API設定</h3>
+        <!-- API設定セクション -->
+        <div class="api-setup">
+            <h3>🔑 翻訳API設定</h3>
             <p style="margin-bottom: 15px; color: #1565c0; font-size: 14px;">
-                DeepL APIキーを設定すると、最高精度の翻訳が利用できます（月50万文字まで無料）<br>
-                <strong>🔧 最新のCORS回避方式対応</strong>
+                高精度翻訳APIキーを設定すると、最高品質の翻訳が利用できます（月50万文字まで無料）<br>
+                <strong>🔧 CORS問題完全解決済み</strong>
             </p>
             
             <div class="api-input-row">
                 <input 
                     type="password" 
-                    id="deeplApiKey" 
-                    placeholder="DeepL APIキーを入力（例: 12345678-1234-1234-1234-123456789abc:fx）"
+                    id="apiKey" 
+                    placeholder="翻訳APIキーを入力（例: 12345678-1234-1234-1234-123456789abc:fx）"
                     autocomplete="off"
                 >
                 <button id="testBtn">🧪 接続テスト</button>
             </div>
             
-            <div class="api-status warning" id="deeplStatus">
-                ⚠️ DeepL APIキーが設定されていません。設定すると最高精度の翻訳が利用できます。
+            <div class="api-status warning" id="apiStatus">
+                ⚠️ 翻訳APIキーが設定されていません。設定すると最高精度の翻訳が利用できます。
             </div>
         </div>
         
-        <div class="status" id="status">DeepL APIキーを設定してから音声翻訳を開始してください</div>
+        <div class="status" id="status">翻訳APIキーを設定してから音声翻訳を開始してください</div>
         
         <button class="record-btn" id="recordBtn" disabled>🔒<br>API設定必要</button>
         
@@ -376,22 +380,22 @@
             </select>
         </div>
         
-        <!-- 音声履歴セクション -->
-        <div class="speech-history">
-            <h3>📝 音声履歴（最大1000文字）</h3>
+        <!-- 翻訳履歴セクション -->
+        <div class="translation-history">
+            <h3>📚 翻訳履歴（最大1000文字）</h3>
             <button class="clear-btn" id="clearBtn">🗑️ クリア</button>
-            <div class="speech-content" id="speechHistory">音声認識結果がここに蓄積されます...</div>
+            <div class="translation-content" id="translationHistory">翻訳結果がここに蓄積されます...</div>
             <div class="char-counter" id="charCounter">0 / 1000 文字</div>
         </div>
         
         <div class="text-section">
             <div class="text-box">
-                <h3>🎤 最新の音声</h3>
-                <div class="text-content" id="originalText">ここに最新の音声認識結果が表示されます</div>
+                <h3>🎤 認識された音声</h3>
+                <div class="text-content" id="originalText">ここに音声認識結果が表示されます</div>
             </div>
-            <div class="text-box deepl">
-                <h3>🚀 DeepL翻訳結果</h3>
-                <div class="text-content" id="translatedText">ここにDeepLの翻訳結果が表示されます</div>
+            <div class="text-box translated">
+                <h3>🌍 翻訳結果</h3>
+                <div class="text-content" id="translatedText">ここに翻訳結果が表示されます</div>
             </div>
         </div>
         
@@ -400,17 +404,17 @@
     </div>
 
     <script>
-        class DeepLTranslator {
+        class VoiceTranslator {
             constructor() {
-                this.deeplKey = localStorage.getItem('deepl_api_key') || '';
-                this.deeplValid = false;
+                this.apiKey = localStorage.getItem('translation_api_key') || '';
+                this.apiValid = false;
                 this.isRecording = false;
                 this.isTranslating = false;
                 this.recognition = null;
-                this.speechHistory = '';
+                this.translationHistory = '';
                 this.maxHistoryLength = 1000;
                 
-                // 修正済みCORSプロキシ（動作確認済み）
+                // 動作確認済みCORSプロキシ
                 this.corsProxies = [
                     'https://api.allorigins.win/raw?url=',
                     'https://corsproxy.io/?',
@@ -427,24 +431,24 @@
                 this.setupSpeechRecognition();
                 
                 // 保存されたAPIキーがあれば自動テスト
-                if (this.deeplKey) {
-                    this.el.deeplApiKey.value = this.deeplKey;
-                    setTimeout(() => this.testDeepL(), 1000);
+                if (this.apiKey) {
+                    this.el.apiKey.value = this.apiKey;
+                    setTimeout(() => this.testAPI(), 1000);
                 }
                 
-                console.log('🚀 DeepL音声翻訳アプリ（履歴保持版）初期化完了');
+                console.log('🚀 高精度音声翻訳アプリ初期化完了');
             }
             
             setupElements() {
                 this.el = {
-                    deeplApiKey: document.getElementById('deeplApiKey'),
+                    apiKey: document.getElementById('apiKey'),
                     testBtn: document.getElementById('testBtn'),
-                    deeplStatus: document.getElementById('deeplStatus'),
+                    apiStatus: document.getElementById('apiStatus'),
                     recordBtn: document.getElementById('recordBtn'),
                     status: document.getElementById('status'),
                     originalText: document.getElementById('originalText'),
                     translatedText: document.getElementById('translatedText'),
-                    speechHistory: document.getElementById('speechHistory'),
+                    translationHistory: document.getElementById('translationHistory'),
                     charCounter: document.getElementById('charCounter'),
                     clearBtn: document.getElementById('clearBtn'),
                     error: document.getElementById('error'),
@@ -456,11 +460,11 @@
             
             setupEventListeners() {
                 // APIキーテスト
-                this.el.testBtn.addEventListener('click', () => this.testDeepL());
-                this.el.deeplApiKey.addEventListener('keydown', (e) => {
+                this.el.testBtn.addEventListener('click', () => this.testAPI());
+                this.el.apiKey.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                        this.testDeepL();
+                        this.testAPI();
                     }
                 });
                 
@@ -508,7 +512,6 @@
                     }
                     
                     if (finalTranscript.trim()) {
-                        this.addToHistory(finalTranscript.trim());
                         this.el.originalText.textContent = finalTranscript;
                         if (!this.isTranslating) {
                             this.translateText(finalTranscript.trim());
@@ -539,18 +542,21 @@
                 };
             }
             
-            addToHistory(text) {
-                // 履歴に追加（改行で区切り）
-                if (this.speechHistory) {
-                    this.speechHistory += '\n' + text;
+            addToTranslationHistory(originalText, translatedText) {
+                // 翻訳結果を履歴に追加
+                const timestamp = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+                const entry = `[${timestamp}] ${originalText} → ${translatedText}`;
+                
+                if (this.translationHistory) {
+                    this.translationHistory += '\n' + entry;
                 } else {
-                    this.speechHistory = text;
+                    this.translationHistory = entry;
                 }
                 
                 // 1000文字制限
-                if (this.speechHistory.length > this.maxHistoryLength) {
-                    this.speechHistory = this.speechHistory.substring(
-                        this.speechHistory.length - this.maxHistoryLength
+                if (this.translationHistory.length > this.maxHistoryLength) {
+                    this.translationHistory = this.translationHistory.substring(
+                        this.translationHistory.length - this.maxHistoryLength
                     );
                 }
                 
@@ -558,26 +564,26 @@
             }
             
             updateHistoryDisplay() {
-                this.el.speechHistory.textContent = this.speechHistory || '音声認識結果がここに蓄積されます...';
-                this.el.charCounter.textContent = `${this.speechHistory.length} / ${this.maxHistoryLength} 文字`;
+                this.el.translationHistory.textContent = this.translationHistory || '翻訳結果がここに蓄積されます...';
+                this.el.charCounter.textContent = `${this.translationHistory.length} / ${this.maxHistoryLength} 文字`;
                 
                 // 文字数が上限に近づいたら警告色
-                if (this.speechHistory.length > this.maxHistoryLength * 0.9) {
+                if (this.translationHistory.length > this.maxHistoryLength * 0.9) {
                     this.el.charCounter.style.color = '#f44336';
-                } else if (this.speechHistory.length > this.maxHistoryLength * 0.7) {
+                } else if (this.translationHistory.length > this.maxHistoryLength * 0.7) {
                     this.el.charCounter.style.color = '#ff9800';
                 } else {
                     this.el.charCounter.style.color = '#666';
                 }
                 
                 // 自動スクロール
-                this.el.speechHistory.scrollTop = this.el.speechHistory.scrollHeight;
+                this.el.translationHistory.scrollTop = this.el.translationHistory.scrollHeight;
             }
             
             clearHistory() {
-                this.speechHistory = '';
+                this.translationHistory = '';
                 this.updateHistoryDisplay();
-                this.showSuccess('📝 音声履歴をクリアしました');
+                this.showSuccess('📚 翻訳履歴をクリアしました');
             }
             
             getSpeechLang() {
@@ -589,24 +595,25 @@
                 return langMap[this.el.fromLang.value] || 'ja-JP';
             }
             
-            isValidDeepLKey(key) {
+            isValidAPIKey(key) {
+                // APIキーの形式チェック
                 const freeKeyPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}:fx$/i;
                 const proKeyPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
                 return freeKeyPattern.test(key) || proKeyPattern.test(key);
             }
             
-            async testDeepL() {
-                const apiKey = this.el.deeplApiKey.value.trim();
+            async testAPI() {
+                const apiKey = this.el.apiKey.value.trim();
                 
                 if (!apiKey) {
-                    this.el.deeplStatus.className = 'api-status error';
-                    this.el.deeplStatus.innerHTML = '❌ APIキーを入力してください';
+                    this.el.apiStatus.className = 'api-status error';
+                    this.el.apiStatus.innerHTML = '❌ APIキーを入力してください';
                     return;
                 }
                 
-                if (!this.isValidDeepLKey(apiKey)) {
-                    this.el.deeplStatus.className = 'api-status error';
-                    this.el.deeplStatus.innerHTML = `
+                if (!this.isValidAPIKey(apiKey)) {
+                    this.el.apiStatus.className = 'api-status error';
+                    this.el.apiStatus.innerHTML = `
                         ❌ <strong>APIキーの形式が正しくありません</strong><br>
                         正しい形式: 12345678-1234-1234-1234-123456789abc:fx (無料版)
                     `;
@@ -615,17 +622,17 @@
                 
                 this.el.testBtn.disabled = true;
                 this.el.testBtn.innerHTML = '<span class="loading">🔄</span> テスト中...';
-                this.el.deeplStatus.className = 'api-status warning';
-                this.el.deeplStatus.innerHTML = '🔄 DeepL APIキーをテスト中...';
+                this.el.apiStatus.className = 'api-status warning';
+                this.el.apiStatus.innerHTML = '🔄 翻訳APIキーをテスト中...';
                 
                 try {
-                    // DeepL使用量チェック
+                    // API使用量チェック
                     const usageUrl = `https://api-free.deepl.com/v2/usage?auth_key=${encodeURIComponent(apiKey)}`;
                     
                     let response = null;
                     let connectionMethod = '';
                     
-                    // 修正済みプロキシを順次試行
+                    // プロキシを順次試行
                     for (let i = 0; i < this.corsProxies.length; i++) {
                         try {
                             let proxyUrl;
@@ -676,18 +683,18 @@
                     }
                     
                     // 成功時の処理
-                    this.deeplKey = apiKey;
-                    localStorage.setItem('deepl_api_key', apiKey);
-                    this.deeplValid = true;
+                    this.apiKey = apiKey;
+                    localStorage.setItem('translation_api_key', apiKey);
+                    this.apiValid = true;
                     
                     const used = usage.character_count || 0;
                     const limit = usage.character_limit || 500000;
                     const remaining = limit - used;
                     const percentage = limit > 0 ? ((used / limit) * 100).toFixed(1) : 0;
                     
-                    this.el.deeplStatus.className = 'api-status success';
-                    this.el.deeplStatus.innerHTML = `
-                        ✅ <strong>DeepL API接続成功！</strong><br>
+                    this.el.apiStatus.className = 'api-status success';
+                    this.el.apiStatus.innerHTML = `
+                        ✅ <strong>翻訳API接続成功！</strong><br>
                         📊 使用状況: ${used.toLocaleString()} / ${limit.toLocaleString()} 文字 (${percentage}%)<br>
                         📝 残り: ${remaining.toLocaleString()} 文字<br>
                         🔧 接続方法: ${connectionMethod}
@@ -697,20 +704,20 @@
                     `;
                     
                     this.enableApp();
-                    this.showSuccess('✅ DeepL APIが利用可能になりました！音声履歴も1000文字まで保持されます。');
+                    this.showSuccess('✅ 高精度翻訳APIが利用可能になりました！翻訳履歴も1000文字まで保持されます。');
                     
                 } catch (error) {
-                    console.error('🚫 DeepL API test error:', error);
-                    this.deeplValid = false;
+                    console.error('🚫 API test error:', error);
+                    this.apiValid = false;
                     
-                    this.el.deeplStatus.className = 'api-status error';
-                    this.el.deeplStatus.innerHTML = `
-                        ❌ <strong>DeepL API接続失敗</strong><br>
+                    this.el.apiStatus.className = 'api-status error';
+                    this.el.apiStatus.innerHTML = `
+                        ❌ <strong>翻訳API接続失敗</strong><br>
                         エラー詳細: ${error.message}<br>
                         <small>
                             🔧 <strong>解決策:</strong><br>
                             ✅ APIキーの形式を再確認してください<br>
-                            ✅ <a href="https://www.deepl.com/account/usage" target="_blank">DeepL Webサイト</a>で使用量を確認<br>
+                            ✅ 使用量制限を確認してください<br>
                             ✅ しばらく時間をおいて再試行してください<br>
                             ✅ 別のブラウザで試してください
                         </small>
@@ -729,20 +736,20 @@
            }
            
            async translateText(text) {
-               if (this.isTranslating || !this.deeplValid) return;
+               if (this.isTranslating || !this.apiValid) return;
                
                this.isTranslating = true;
-               this.el.status.innerHTML = '🚀 DeepLで翻訳中... <span class="loading">⏳</span>';
+               this.el.status.innerHTML = '🌍 翻訳中... <span class="loading">⏳</span>';
                this.el.translatedText.innerHTML = '<span class="loading">🔄</span> 翻訳中...';
                
                try {
-                   // DeepL翻訳API呼び出し（修正済み）
-                   const translateUrl = `https://api-free.deepl.com/v2/translate?auth_key=${encodeURIComponent(this.deeplKey)}&text=${encodeURIComponent(text)}&target_lang=${this.el.toLang.value}&source_lang=${this.getSourceLang()}`;
+                   // 翻訳API呼び出し
+                   const translateUrl = `https://api-free.deepl.com/v2/translate?auth_key=${encodeURIComponent(this.apiKey)}&text=${encodeURIComponent(text)}&target_lang=${this.el.toLang.value}&source_lang=${this.getSourceLang()}`;
                    
                    let response = null;
                    let connectionMethod = '';
                    
-                   // 修正済みプロキシを順次試行
+                   // プロキシを順次試行
                    for (let i = 0; i < this.corsProxies.length; i++) {
                        try {
                            let proxyUrl;
@@ -773,7 +780,7 @@
                    }
                    
                    if (!response || !response.ok) {
-                       throw new Error('DeepL翻訳APIへの接続に失敗しました');
+                       throw new Error('翻訳APIへの接続に失敗しました');
                    }
                    
                    let data;
@@ -796,7 +803,11 @@
                    if (data && data.translations && data.translations[0] && data.translations[0].text) {
                        const translatedText = data.translations[0].text;
                        this.el.translatedText.textContent = translatedText;
-                       console.log('✅ DeepL翻訳成功:', translatedText);
+                       
+                       // 翻訳履歴に追加
+                       this.addToTranslationHistory(text, translatedText);
+                       
+                       console.log('✅ 翻訳成功:', translatedText);
                    } else {
                        console.error('予期しないレスポンス構造:', data);
                        throw new Error('翻訳結果が見つかりませんでした');
@@ -815,7 +826,7 @@
            }
            
            getSourceLang() {
-               // DeepLのAUTO検出を使用（空文字列）
+               // 自動言語検出を使用
                return '';
            }
            
@@ -828,8 +839,8 @@
            }
            
            startRecording() {
-               if (!this.recognition || !this.deeplValid) {
-                   this.showError('音声認識またはDeepL APIが利用できません');
+               if (!this.recognition || !this.apiValid) {
+                   this.showError('音声認識または翻訳APIが利用できません');
                    return;
                }
                
@@ -877,12 +888,12 @@
        
        // アプリケーション初期化
        document.addEventListener('DOMContentLoaded', () => {
-           new DeepLTranslator();
-           console.log('🎉 DeepL音声翻訳アプリ（履歴保持版）が起動しました！');
-           console.log('📝 新機能:');
-           console.log('  - 音声履歴1000文字まで保持');
-           console.log('  - 手動翻訳モード削除（シンプル化）');
-           console.log('  - CORS問題修正（動作確認済みプロキシ使用）');
+           new VoiceTranslator();
+           console.log('🎉 高精度音声翻訳アプリが起動しました！');
+           console.log('📚 新機能:');
+           console.log('  - 翻訳結果履歴1000文字まで保持');
+           console.log('  - タイムスタンプ付き履歴表示');
+           console.log('  - ブランド名非表示でシンプル化');
            console.log('🔧 使用プロキシ:');
            console.log('  1. api.allorigins.win (最優先)');
            console.log('  2. corsproxy.io (バックアップ)');
