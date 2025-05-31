@@ -238,53 +238,6 @@
             overflow-y: auto;
         }
         
-        .translation-history {
-            background: #f3e5f5;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 2px solid #9c27b0;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .translation-history h3 {
-            color: #7b1fa2;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .translation-content {
-            color: #4a148c;
-            line-height: 1.6;
-            font-size: 14px;
-            white-space: pre-wrap;
-        }
-        
-        .char-counter {
-            text-align: right;
-            color: #666;
-            font-size: 12px;
-            margin-top: 5px;
-        }
-        
-        .clear-btn {
-            padding: 8px 16px;
-            background: #9c27b0;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            float: right;
-        }
-        
-        .clear-btn:hover {
-            background: #7b1fa2;
-        }
-        
         .error {
             background: #ffebee;
             color: #c62828;
@@ -307,6 +260,95 @@
             display: none;
         }
         
+        /* 翻訳履歴セクション - 最下段配置 */
+        .translation-history {
+            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+            border: 2px solid #9c27b0;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        
+        .translation-history h3 {
+            color: #7b1fa2;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .translation-content {
+            color: #4a148c;
+            line-height: 1.8;
+            font-size: 14px;
+            white-space: pre-wrap;
+            font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif;
+        }
+        
+        .history-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(156, 39, 176, 0.2);
+            animation: fadeInTop 0.5s ease-out;
+        }
+        
+        .history-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .history-timestamp {
+            color: #7b1fa2;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .history-translation {
+            margin-top: 2px;
+            color: #4a148c;
+        }
+        
+        @keyframes fadeInTop {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .char-counter {
+            text-align: right;
+            color: #666;
+            font-size: 12px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(156, 39, 176, 0.2);
+        }
+        
+        .clear-btn {
+            padding: 6px 12px;
+            background: #9c27b0;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        
+        .clear-btn:hover {
+            background: #7b1fa2;
+            transform: translateY(-1px);
+        }
+        
         .loading { animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
@@ -315,6 +357,7 @@
             .text-section { grid-template-columns: 1fr; }
             .api-input-row { flex-direction: column; align-items: stretch; }
             .api-input-row input { min-width: auto; margin-bottom: 10px; }
+            .translation-history { max-height: 200px; }
         }
     </style>
 </head>
@@ -380,14 +423,6 @@
             </select>
         </div>
         
-        <!-- 翻訳履歴セクション -->
-        <div class="translation-history">
-            <h3>📚 翻訳履歴（最大1000文字）</h3>
-            <button class="clear-btn" id="clearBtn">🗑️ クリア</button>
-            <div class="translation-content" id="translationHistory">翻訳結果がここに蓄積されます...</div>
-            <div class="char-counter" id="charCounter">0 / 1000 文字</div>
-        </div>
-        
         <div class="text-section">
             <div class="text-box">
                 <h3>🎤 認識された音声</h3>
@@ -401,6 +436,16 @@
         
         <div class="error" id="error"></div>
         <div class="success" id="success"></div>
+        
+        <!-- 翻訳履歴セクション - 最下段に配置 -->
+        <div class="translation-history">
+            <h3>
+                📚 翻訳履歴（最大1000文字）
+                <button class="clear-btn" id="clearBtn">🗑️ クリア</button>
+            </h3>
+            <div class="translation-content" id="translationHistory">翻訳結果がここに蓄積されます...</div>
+            <div class="char-counter" id="charCounter">0 / 1000 文字</div>
+        </div>
     </div>
 
     <script>
@@ -411,7 +456,7 @@
                 this.isRecording = false;
                 this.isTranslating = false;
                 this.recognition = null;
-                this.translationHistory = '';
+                this.translationHistory = [];
                 this.maxHistoryLength = 1000;
                 
                 // 動作確認済みCORSプロキシ
@@ -543,45 +588,67 @@
             }
             
             addToTranslationHistory(originalText, translatedText) {
-                // 翻訳結果を履歴に追加
+                // 新しい履歴エントリを作成
                 const timestamp = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-                const entry = `[${timestamp}] ${originalText} → ${translatedText}`;
+                const entry = {
+                    timestamp: timestamp,
+                    original: originalText,
+                    translated: translatedText,
+                    text: `[${timestamp}] ${originalText} → ${translatedText}`
+                };
                 
-                if (this.translationHistory) {
-                    this.translationHistory += '\n' + entry;
-                } else {
-                    this.translationHistory = entry;
-                }
+                // 配列の先頭に追加（最新が上に）
+                this.translationHistory.unshift(entry);
                 
-                // 1000文字制限
-                if (this.translationHistory.length > this.maxHistoryLength) {
-                    this.translationHistory = this.translationHistory.substring(
-                        this.translationHistory.length - this.maxHistoryLength
-                    );
-                }
+                // 1000文字制限チェック
+                this.trimHistoryToLimit();
                 
                 this.updateHistoryDisplay();
             }
             
-            updateHistoryDisplay() {
-                this.el.translationHistory.textContent = this.translationHistory || '翻訳結果がここに蓄積されます...';
-                this.el.charCounter.textContent = `${this.translationHistory.length} / ${this.maxHistoryLength} 文字`;
+            trimHistoryToLimit() {
+                // 全履歴の文字数を計算
+                let totalLength = this.translationHistory.reduce((sum, entry) => sum + entry.text.length + 1, 0);
                 
-                // 文字数が上限に近づいたら警告色
-                if (this.translationHistory.length > this.maxHistoryLength * 0.9) {
+                // 1000文字を超える場合、古い履歴を削除
+                while (totalLength > this.maxHistoryLength && this.translationHistory.length > 1) {
+                    const removedEntry = this.translationHistory.pop();
+                    totalLength -= (removedEntry.text.length + 1);
+                }
+            }
+            
+            updateHistoryDisplay() {
+                if (this.translationHistory.length === 0) {
+                    this.el.translationHistory.innerHTML = '<div style="color: #9c27b0; font-style: italic;">翻訳結果がここに蓄積されます...</div>';
+                } else {
+                    // 最新の履歴から順に表示
+                    this.el.translationHistory.innerHTML = this.translationHistory.map(entry => `
+                        <div class="history-entry">
+                            <div class="history-timestamp">[${entry.timestamp}]</div>
+                            <div class="history-translation">${entry.original} → ${entry.translated}</div>
+                        </div>
+                    `).join('');
+                }
+                
+                // 文字数カウント
+                const totalLength = this.translationHistory.reduce((sum, entry) => sum + entry.text.length + 1, 0);
+                this.el.charCounter.textContent = `${totalLength} / ${this.maxHistoryLength} 文字`;
+                
+                // 文字数警告色
+                if (totalLength > this.maxHistoryLength * 0.9) {
                     this.el.charCounter.style.color = '#f44336';
-                } else if (this.translationHistory.length > this.maxHistoryLength * 0.7) {
+                } else if (totalLength > this.maxHistoryLength * 0.7) {
                     this.el.charCounter.style.color = '#ff9800';
                 } else {
                     this.el.charCounter.style.color = '#666';
                 }
                 
-                // 自動スクロール
-                this.el.translationHistory.scrollTop = this.el.translationHistory.scrollHeight;
+                // 新しい履歴をトップに表示（スクロールを上に）
+                this.el.translationHistory.scrollTop = 0;
             }
             
             clearHistory() {
-                this.translationHistory = '';
+                this.translationHistory = [];
                 this.updateHistoryDisplay();
                 this.showSuccess('📚 翻訳履歴をクリアしました');
             }
@@ -680,55 +747,55 @@
                     } catch (parseError) {
                         console.log('レスポンス解析エラー:', responseText);
                         throw new Error('APIレスポンスの解析に失敗しました');
-                    }
-                    
-                    // 成功時の処理
-                    this.apiKey = apiKey;
-                    localStorage.setItem('translation_api_key', apiKey);
-                    this.apiValid = true;
-                    
-                    const used = usage.character_count || 0;
-                    const limit = usage.character_limit || 500000;
-                    const remaining = limit - used;
-                    const percentage = limit > 0 ? ((used / limit) * 100).toFixed(1) : 0;
-                    
-                    this.el.apiStatus.className = 'api-status success';
-                    this.el.apiStatus.innerHTML = `
-                        ✅ <strong>翻訳API接続成功！</strong><br>
-                        📊 使用状況: ${used.toLocaleString()} / ${limit.toLocaleString()} 文字 (${percentage}%)<br>
-                        📝 残り: ${remaining.toLocaleString()} 文字<br>
-                        🔧 接続方法: ${connectionMethod}
-                        <div class="usage-bar">
-                            <div class="usage-progress" style="width: ${percentage}%"></div>
-                        </div>
-                    `;
-                    
-                    this.enableApp();
-                    this.showSuccess('✅ 高精度翻訳APIが利用可能になりました！翻訳履歴も1000文字まで保持されます。');
-                    
-                } catch (error) {
-                    console.error('🚫 API test error:', error);
-                    this.apiValid = false;
-                    
-                    this.el.apiStatus.className = 'api-status error';
-                    this.el.apiStatus.innerHTML = `
-                        ❌ <strong>翻訳API接続失敗</strong><br>
-                        エラー詳細: ${error.message}<br>
-                        <small>
-                            🔧 <strong>解決策:</strong><br>
-                            ✅ APIキーの形式を再確認してください<br>
-                            ✅ 使用量制限を確認してください<br>
-                            ✅ しばらく時間をおいて再試行してください<br>
-                            ✅ 別のブラウザで試してください
-                        </small>
-                    `;
-                } finally {
-                    this.el.testBtn.disabled = false;
-                    this.el.testBtn.innerHTML = '🧪 接続テスト';
-                }
-            }
-            
-            enableApp() {
+                   }
+                   
+                   // 成功時の処理
+                   this.apiKey = apiKey;
+                   localStorage.setItem('translation_api_key', apiKey);
+                   this.apiValid = true;
+                   
+                   const used = usage.character_count || 0;
+                   const limit = usage.character_limit || 500000;
+                   const remaining = limit - used;
+                   const percentage = limit > 0 ? ((used / limit) * 100).toFixed(1) : 0;
+                   
+                   this.el.apiStatus.className = 'api-status success';
+                   this.el.apiStatus.innerHTML = `
+                       ✅ <strong>翻訳API接続成功！</strong><br>
+                       📊 使用状況: ${used.toLocaleString()} / ${limit.toLocaleString()} 文字 (${percentage}%)<br>
+                       📝 残り: ${remaining.toLocaleString()} 文字<br>
+                       🔧 接続方法: ${connectionMethod}
+                       <div class="usage-bar">
+                           <div class="usage-progress" style="width: ${percentage}%"></div>
+                       </div>
+                   `;
+                   
+                   this.enableApp();
+                   this.showSuccess('✅ 高精度翻訳APIが利用可能になりました！翻訳履歴も1000文字まで保持されます。');
+                   
+               } catch (error) {
+                   console.error('🚫 API test error:', error);
+                   this.apiValid = false;
+                   
+                   this.el.apiStatus.className = 'api-status error';
+                   this.el.apiStatus.innerHTML = `
+                       ❌ <strong>翻訳API接続失敗</strong><br>
+                       エラー詳細: ${error.message}<br>
+                       <small>
+                           🔧 <strong>解決策:</strong><br>
+                           ✅ APIキーの形式を再確認してください<br>
+                           ✅ 使用量制限を確認してください<br>
+                           ✅ しばらく時間をおいて再試行してください<br>
+                           ✅ 別のブラウザで試してください
+                       </small>
+                   `;
+               } finally {
+                   this.el.testBtn.disabled = false;
+                   this.el.testBtn.innerHTML = '🧪 接続テスト';
+               }
+           }
+           
+           enableApp() {
                // アプリの機能を有効化
                this.el.recordBtn.disabled = false;
                this.el.recordBtn.innerHTML = '🎤<br>音声開始';
@@ -804,7 +871,7 @@
                        const translatedText = data.translations[0].text;
                        this.el.translatedText.textContent = translatedText;
                        
-                       // 翻訳履歴に追加
+                       // 翻訳履歴に追加（最新が上に）
                        this.addToTranslationHistory(text, translatedText);
                        
                        console.log('✅ 翻訳成功:', translatedText);
@@ -892,8 +959,10 @@
            console.log('🎉 高精度音声翻訳アプリが起動しました！');
            console.log('📚 新機能:');
            console.log('  - 翻訳結果履歴1000文字まで保持');
-           console.log('  - タイムスタンプ付き履歴表示');
-           console.log('  - ブランド名非表示でシンプル化');
+           console.log('  - 最新履歴が上に表示される降順ソート');
+           console.log('  - 履歴セクションを最下段に配置');
+           console.log('  - タイムスタンプ付き見やすい表示');
+           console.log('  - アニメーション付きエントリ追加');
            console.log('🔧 使用プロキシ:');
            console.log('  1. api.allorigins.win (最優先)');
            console.log('  2. corsproxy.io (バックアップ)');
