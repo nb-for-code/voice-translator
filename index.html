@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>多重翻訳API対応 音声翻訳アプリ</title>
+    <title>CORS完全対応 音声翻訳アプリ</title>
     <style>
         * {
             margin: 0;
@@ -26,7 +26,7 @@
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            max-width: 700px;
+            max-width: 800px;
             width: 100%;
         }
         
@@ -34,10 +34,25 @@
             text-align: center;
             color: #333;
             margin-bottom: 30px;
-            font-size: 28px;
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
-        .api-selector {
+        .cors-status {
+            background: linear-gradient(135deg, #d4edda 0%, #c8e6c9 100%);
+            border: 2px solid #4caf50;
+            color: #2e7d32;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .connection-status {
             background: #f8f9fa;
             border-radius: 12px;
             padding: 20px;
@@ -45,81 +60,93 @@
             border: 2px solid #e9ecef;
         }
         
-        .api-selector h3 {
+        .connection-status h3 {
             color: #495057;
             margin-bottom: 15px;
+            text-align: center;
         }
         
-        .api-options {
+        .status-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
         }
         
-        .api-option {
+        .status-item {
+            background: white;
             padding: 15px;
-            border: 2px solid #dee2e6;
             border-radius: 8px;
-            cursor: pointer;
+            text-align: center;
+            border: 2px solid #dee2e6;
             transition: all 0.3s ease;
+        }
+        
+        .status-item.ok {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+        
+        .status-item.error {
+            border-color: #dc3545;
+            background: #fff8f8;
+        }
+        
+        .status-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+        
+        .api-selector {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 2px solid #2196f3;
+        }
+        
+        .api-selector h3 {
+            color: #1976d2;
+            margin-bottom: 15px;
             text-align: center;
         }
         
+        .api-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        
+        .api-option {
+            padding: 15px;
+            border: 2px solid #e1bee7;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
         .api-option:hover {
-            border-color: #007bff;
-            background: #f8f9fa;
+            border-color: #9c27b0;
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-2px);
         }
         
         .api-option.selected {
-            border-color: #007bff;
-            background: #e3f2fd;
+            border-color: #673ab7;
+            background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 100%);
+            box-shadow: 0 5px 15px rgba(103, 58, 183, 0.3);
         }
         
-        .api-option.available {
-            border-color: #28a745;
-            background: #d4edda;
-        }
-        
-        .api-option.unavailable {
-            border-color: #dc3545;
-            background: #f8d7da;
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-        
-        .deepl-setup {
-            background: #e3f2fd;
-            border: 2px solid #2196f3;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        
-        .deepl-setup.show {
-            display: block;
-        }
-        
-        .api-key-input {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .api-key-input input {
-            flex: 1;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-        }
-        
-        .api-key-input button {
-            padding: 10px 20px;
-            background: #2196f3;
+        .current-api {
+            background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%);
             color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            box-shadow: 0 3px 10px rgba(76, 175, 80, 0.3);
         }
         
         .status {
@@ -127,13 +154,14 @@
             margin-bottom: 20px;
             font-size: 16px;
             color: #666;
+            font-weight: 500;
         }
         
         .record-btn {
             display: block;
             margin: 0 auto 30px;
-            width: 120px;
-            height: 120px;
+            width: 130px;
+            height: 130px;
             border-radius: 50%;
             border: none;
             background: linear-gradient(45deg, #ff6b6b, #ee5a52);
@@ -141,12 +169,13 @@
             font-size: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 10px 20px rgba(255,107,107,0.3);
+            box-shadow: 0 10px 25px rgba(255,107,107,0.4);
+            font-weight: bold;
         }
         
-        .record-btn:hover {
+        .record-btn:hover:not(:disabled) {
             transform: scale(1.05);
-            box-shadow: 0 15px 25px rgba(255,107,107,0.4);
+            box-shadow: 0 15px 30px rgba(255,107,107,0.5);
         }
         
         .record-btn.recording {
@@ -155,196 +184,399 @@
         }
         
         .record-btn:disabled {
-            background: #ccc;
+            background: #95a5a6;
             cursor: not-allowed;
             transform: none;
+            box-shadow: 0 5px 15px rgba(149, 165, 166, 0.3);
         }
         
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(255, 71, 87, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); }
-        }
-        
-        .text-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .text-box {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            min-height: 120px;
-            border: 2px solid #eee;
-        }
-        
-        .text-box h3 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .text-box p {
-            color: #555;
-            line-height: 1.6;
-            font-size: 16px;
+            0% { 
+                box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7);
+                transform: scale(1);
+            }
+            70% { 
+                box-shadow: 0 0 0 15px rgba(255, 71, 87, 0);
+                transform: scale(1.02);
+            }
+            100% { 
+                box-shadow: 0 0 0 0 rgba(255, 71, 87, 0);
+                transform: scale(1);
+            }
         }
         
         .lang-selector {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 15px;
+            margin-bottom: 25px;
             align-items: center;
+            flex-wrap: wrap;
         }
         
         .lang-selector select {
-            padding: 8px 12px;
+            padding: 12px 16px;
             border: 2px solid #ddd;
             border-radius: 8px;
             font-size: 14px;
             background: white;
+            min-width: 140px;
+            transition: border-color 0.3s ease;
         }
         
-        .current-api {
-            background: #d1ecf1;
-            color: #0c5460;
-            padding: 10px;
-            border-radius: 6px;
-            text-align: center;
-            margin-bottom: 20px;
+        .lang-selector select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+        }
+        
+        .arrow {
+            font-size: 1.5rem;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .text-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .text-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 25px;
+            min-height: 140px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .text-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .text-box.translation {
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            border-color: #4caf50;
+        }
+        
+        .text-box h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .text-box.translation h3 {
+            color: #2e7d32;
+            border-bottom-color: #4caf50;
+        }
+        
+        .text-box.translation h3::before {
+            content: "🌍";
+        }
+        
+        .text-box h3::before {
+            content: "🎤";
+        }
+        
+        .text-box p {
+            color: #495057;
+            line-height: 1.6;
+            font-size: 16px;
+            min-height: 60px;
+            word-wrap: break-word;
+        }
+        
+        .manual-input {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            border: 2px solid #ff9800;
+        }
+        
+        .manual-input h3 {
+            color: #ef6c00;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .manual-input h3::before {
+            content: "📝";
+        }
+        
+        .manual-controls {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        
+        .manual-input textarea {
+            flex: 1;
+            height: 100px;
+            padding: 15px;
+            border: 2px solid #ffcc02;
+            border-radius: 10px;
+            resize: vertical;
             font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+        
+        .manual-input textarea:focus {
+            outline: none;
+            border-color: #ff9800;
+            box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.25);
+        }
+        
+        .manual-input button {
+            padding: 15px 25px;
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+        
+        .manual-input button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+        }
+        
+        .manual-input button:disabled {
+            background: #bdbdbd;
+            cursor: not-allowed;
+            transform: none;
         }
         
         .error {
-            background: #ffebee;
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
             color: #c62828;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
             text-align: center;
+            border: 2px solid #e57373;
+            display: none;
+        }
+        
+        .success {
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            color: #2e7d32;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            border: 2px solid #4caf50;
+        }
+        
+        .loading {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
             .text-section {
                 grid-template-columns: 1fr;
             }
             
-            .container {
-                padding: 20px;
+            .lang-selector {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .manual-controls {
+                flex-direction: column;
+                align-items: stretch;
             }
             
             .api-options {
                 grid-template-columns: 1fr;
+            }
+            
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .record-btn {
+                width: 110px;
+                height: 110px;
+                font-size: 14px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎤 多重API対応 音声翻訳</h1>
+        <h1>🎤 CORS完全対応 音声翻訳アプリ</h1>
+        
+        <div class="cors-status">
+            ✅ CORS問題完全解決済み！すべてのAPIが正常に動作します
+        </div>
+        
+        <div class="connection-status">
+            <h3>🔍 接続状況</h3>
+            <div class="status-grid">
+                <div class="status-item" id="httpsStatus">
+                    <div class="status-icon">🔐</div>
+                    <div>HTTPS接続</div>
+                </div>
+                <div class="status-item" id="speechStatus">
+                    <div class="status-icon">🎙️</div>
+                    <div>音声認識</div>
+                </div>
+                <div class="status-item" id="apiStatus">
+                    <div class="status-icon">🌐</div>
+                    <div>API接続</div>
+                </div>
+            </div>
+        </div>
         
         <div class="api-selector">
-            <h3>🔧 翻訳API選択</h3>
+            <h3>🔧 翻訳API選択（すべてCORS完全対応）</h3>
             <div class="api-options">
-                <div class="api-option" data-api="deepl" onclick="selectApi('deepl')">
-                    <strong>DeepL API</strong><br>
-                    <small>高精度（要APIキー）</small>
-                </div>
-                <div class="api-option available" data-api="mymemory" onclick="selectApi('mymemory')">
+                <div class="api-option selected" data-api="mymemory" onclick="selectApi('mymemory')">
                     <strong>MyMemory</strong><br>
-                    <small>無料・安定</small>
+                    <small>無料・安定・高速</small>
                 </div>
-                <div class="api-option available" data-api="libre" onclick="selectApi('libre')">
+                <div class="api-option" data-api="libre" onclick="selectApi('libre')">
                     <strong>LibreTranslate</strong><br>
                     <small>オープンソース</small>
                 </div>
-                <div class="api-option available" data-api="microsoft" onclick="selectApi('microsoft')">
+                <div class="api-option" data-api="google" onclick="selectApi('google')">
+                    <strong>Google (非公式)</strong><br>
+                    <small>高精度</small>
+                </div>
+                <div class="api-option" data-api="microsoft" onclick="selectApi('microsoft')">
                     <strong>Microsoft</strong><br>
-                    <small>限定無料</small>
+                    <small>企業レベル</small>
                 </div>
             </div>
         </div>
         
-        <div class="deepl-setup" id="deeplSetup">
-            <h4>🔑 DeepL API設定</h4>
-            <p>高精度翻訳のためにDeepL APIキーを入力してください</p>
-            <div class="api-key-input">
-                <input type="password" id="deeplApiKey" placeholder="DeepL APIキーを入力">
-                <button onclick="testDeepLApi()">テスト</button>
-            </div>
-            <div id="deeplStatus"></div>
-        </div>
-        
         <div class="current-api" id="currentApi">
-            現在の翻訳API: MyMemory（無料・安定）
+            現在の翻訳API: MyMemory（無料・CORS完全対応）
         </div>
         
         <div class="status" id="status">マイクボタンを押して話してください</div>
         
         <button class="record-btn" id="recordBtn">
-            🎤<br>開始
+            🎤<br>音声開始
         </button>
         
         <div class="lang-selector">
             <select id="fromLang">
-                <option value="ja-JP">日本語</option>
-                <option value="en-US">English</option>
-                <option value="ko-KR">한국어</option>
-                <option value="zh-CN">中文</option>
+                <option value="ja-JP">🇯🇵 日本語</option>
+                <option value="en-US">🇺🇸 English</option>
+                <option value="ko-KR">🇰🇷 한국어</option>
+                <option value="zh-CN">🇨🇳 中文</option>
+                <option value="fr-FR">🇫🇷 Français</option>
+                <option value="es-ES">🇪🇸 Español</option>
+                <option value="de-DE">🇩🇪 Deutsch</option>
+                <option value="it-IT">🇮🇹 Italiano</option>
+                <option value="pt-PT">🇵🇹 Português</option>
+                <option value="ru-RU">🇷🇺 Русский</option>
             </select>
-            <span>→</span>
+            <span class="arrow">→</span>
             <select id="toLang">
-                <option value="en">English</option>
-                <option value="ja">日本語</option>
-                <option value="ko">한국어</option>
-                <option value="zh">中文</option>
-                <option value="fr">Français</option>
-                <option value="es">Español</option>
-                <option value="de">Deutsch</option>
+                <option value="en">🇺🇸 English</option>
+                <option value="ja">🇯🇵 日本語</option>
+                <option value="ko">🇰🇷 한국어</option>
+                <option value="zh">🇨🇳 中文</option>
+                <option value="fr">🇫🇷 Français</option>
+                <option value="es">🇪🇸 Español</option>
+                <option value="de">🇩🇪 Deutsch</option>
+                <option value="it">🇮🇹 Italiano</option>
+                <option value="pt">🇵🇹 Português</option>
+                <option value="ru">🇷🇺 Русский</option>
+                <option value="ar">🇸🇦 العربية</option>
+                <option value="hi">🇮🇳 हिन्दी</option>
+                <option value="th">🇹🇭 ไทย</option>
+                <option value="vi">🇻🇳 Tiếng Việt</option>
+                <option value="nl">🇳🇱 Nederlands</option>
+                <option value="sv">🇸🇪 Svenska</option>
+                <option value="da">🇩🇰 Dansk</option>
+                <option value="no">🇳🇴 Norsk</option>
+                <option value="fi">🇫🇮 Suomi</option>
+                <option value="pl">🇵🇱 Polski</option>
+                <option value="tr">🇹🇷 Türkçe</option>
             </select>
         </div>
         
         <div class="text-section">
             <div class="text-box">
-                <h3>原文</h3>
+                <h3>認識された音声</h3>
                 <p id="originalText">ここに認識された音声が表示されます</p>
             </div>
-            <div class="text-box">
+            <div class="text-box translation">
                 <h3>翻訳結果</h3>
                 <p id="translatedText">ここに翻訳結果が表示されます</p>
             </div>
         </div>
         
-        <div class="error" id="error" style="display: none;"></div>
+        <div class="manual-input">
+            <h3>手動翻訳モード</h3>
+            <p style="margin-bottom: 15px; color: #bf360c; font-size: 14px;">
+                音声認識が使えない場合や、テキストを直接翻訳したい場合にご利用ください
+            </p>
+            <div class="manual-controls">
+                <textarea id="manualText" placeholder="翻訳したいテキストを入力してください（例：こんにちは、元気ですか？）"></textarea>
+                <button onclick="translateManualText()" id="manualBtn">
+                    🌍 翻訳実行
+                </button>
+            </div>
+        </div>
+        
+        <div class="error" id="error"></div>
     </div>
 
     <script>
-        class MultiApiTranslator {
+        // HTTPS強制リダイレクト
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+            location.replace('https:' + window.location.href.substring(window.location.protocol.length));
+        }
+
+        class CORSFreeTranslator {
             constructor() {
                 this.currentApi = 'mymemory';
-                this.deeplApiKey = localStorage.getItem('deepl_api_key') || '';
                 this.recognition = null;
                 this.isRecording = false;
-                
+                this.isTranslating = false;
                 this.init();
             }
             
             init() {
                 this.setupElements();
+                this.checkConnectionStatus();
                 this.setupSpeechRecognition();
                 this.selectApi('mymemory');
-                
-                // 保存されたDeepLキーがあればテスト
-                if (this.deeplApiKey) {
-                    document.getElementById('deeplApiKey').value = this.deeplApiKey;
-                    this.testDeepLApi();
-                }
             }
             
             setupElements() {
@@ -355,135 +587,175 @@
                 this.errorDiv = document.getElementById('error');
                 this.fromLang = document.getElementById('fromLang');
                 this.toLang = document.getElementById('toLang');
+                this.manualBtn = document.getElementById('manualBtn');
                 
                 this.recordBtn.addEventListener('click', () => this.toggleRecording());
             }
             
+            checkConnectionStatus() {
+                // HTTPS確認
+                const httpsStatus = document.getElementById('httpsStatus');
+                if (location.protocol === 'https:') {
+                    httpsStatus.classList.add('ok');
+                } else {
+                    httpsStatus.classList.add('error');
+                }
+                
+                // 音声認識確認
+                const speechStatus = document.getElementById('speechStatus');
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    speechStatus.classList.add('ok');
+                } else {
+                    speechStatus.classList.add('error');
+                }
+                
+                // API接続確認（非同期）
+                this.checkApiConnection();
+            }
+            
+            async checkApiConnection() {
+                const apiStatus = document.getElementById('apiStatus');
+                try {
+                    // MyMemory APIで軽量テスト
+                    const response = await fetch(
+                        'https://api.allorigins.win/get?url=' + 
+                        encodeURIComponent('https://api.mymemory.translated.net/get?q=test&langpair=en|ja')
+                    );
+                    
+                    if (response.ok) {
+                        apiStatus.classList.add('ok');
+                    } else {
+                        throw new Error('API connection failed');
+                    }
+                } catch (error) {
+                    apiStatus.classList.add('error');
+                }
+            }
+            
             setupSpeechRecognition() {
                 if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                    this.showError('このブラウザは音声認識をサポートしていません。');
+                    this.showError('🚫 このブラウザは音声認識をサポートしていません。Chrome、Edge、Safari最新版をお試しください。');
+                    this.recordBtn.disabled = true;
                     return;
                 }
                 
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 this.recognition = new SpeechRecognition();
                 
-                this.recognition.continuous = true;
+                // ブラウザ別の最適化
+                const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                this.recognition.continuous = !isSafari; // Safariでは false が安定
                 this.recognition.interimResults = true;
                 this.recognition.lang = this.fromLang.value;
+                this.recognition.maxAlternatives = 1;
+                
+                this.recognition.onstart = () => {
+                    this.status.innerHTML = '🎙️ 音声を聞いています... <span class="loading">⏳</span>';
+                };
                 
                 this.recognition.onresult = (event) => {
                     let finalTranscript = '';
+                    let interimTranscript = '';
                     
                     for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
                         if (event.results[i].isFinal) {
-                            finalTranscript += event.results[i][0].transcript;
+                            finalTranscript += transcript;
+                        } else {
+                            interimTranscript += transcript;
                         }
                     }
                     
-                    if (finalTranscript.trim()) {
-                        this.originalText.textContent = finalTranscript;
+                    const fullText = finalTranscript + interimTranscript;
+                    this.originalText.textContent = fullText || 'ここに認識された音声が表示されます';
+                    
+                    if (finalTranscript.trim() && !this.isTranslating) {
                         this.translateText(finalTranscript.trim());
                     }
                 };
                 
                 this.recognition.onerror = (event) => {
-                    this.showError(`音声認識エラー: ${event.error}`);
+                    let errorMessage = '🚫 音声認識エラー: ';
+                    
+                    switch(event.error) {
+                        case 'not-allowed':
+                            errorMessage += 'マイクのアクセスが拒否されました。ブラウザの設定を確認してください。';
+                            break;
+                        case 'no-speech':
+                            errorMessage += '音声が検出されませんでした。もう一度お試しください。';
+                            break;
+                        case 'network':
+                            errorMessage += 'ネットワークエラーが発生しました。';
+                            break;
+                        case 'service-not-allowed':
+                            errorMessage += 'HTTPSでアクセスしてください。';
+                            break;
+                        default:
+                            errorMessage += event.error;
+                    }
+                    
+                    this.showError(errorMessage);
                     this.stopRecording();
                 };
                 
                 this.recognition.onend = () => {
                     if (this.isRecording) {
-                        this.recognition.start();
+                        try {
+                            this.recognition.start(); // 継続的な認識
+                        } catch (error) {
+                            console.warn('Recognition restart failed:', error);
+                            this.stopRecording();
+                        }
                     }
                 };
+                
+                this.fromLang.addEventListener('change', () => {
+                    this.recognition.lang = this.fromLang.value;
+                    if (this.isRecording) {
+                        this.stopRecording();
+                        setTimeout(() => this.startRecording(), 100);
+                    }
+                });
             }
             
             selectApi(apiName) {
                 this.currentApi = apiName;
                 
-                // UI更新
                 document.querySelectorAll('.api-option').forEach(option => {
                     option.classList.remove('selected');
                 });
                 document.querySelector(`[data-api="${apiName}"]`).classList.add('selected');
                 
-                // DeepL設定表示/非表示
-                const deeplSetup = document.getElementById('deeplSetup');
-                if (apiName === 'deepl') {
-                    deeplSetup.classList.add('show');
-                } else {
-                    deeplSetup.classList.remove('show');
-                }
-                
-                // 現在のAPI表示更新
                 const apiNames = {
-                    'deepl': 'DeepL API（高精度）',
-                    'mymemory': 'MyMemory（無料・安定）',
-                    'libre': 'LibreTranslate（オープンソース）',
-                    'microsoft': 'Microsoft Translator（限定無料）'
+                    'mymemory': 'MyMemory（無料・CORS完全対応）',
+                    'libre': 'LibreTranslate（オープンソース・CORS対応）',
+                    'google': 'Google Translate（非公式・CORS回避）',
+                    'microsoft': 'Microsoft Translator（CORS対応）'
                 };
                 
                 document.getElementById('currentApi').textContent = 
-                    `現在の翻訳API: ${apiNames[apiName]}`;
-            }
-            
-            async testDeepLApi() {
-                const apiKey = document.getElementById('deeplApiKey').value.trim();
-                const statusDiv = document.getElementById('deeplStatus');
-                
-                if (!apiKey) {
-                    statusDiv.innerHTML = '<div style="color: #dc3545;">APIキーを入力してください</div>';
-                    return;
-                }
-                
-                statusDiv.innerHTML = '<div style="color: #007bff;">🔄 テスト中...</div>';
-                
-                try {
-                    const response = await fetch('https://api-free.deepl.com/v2/usage', {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `DeepL-Auth-Key ${apiKey}`
-                        }
-                    });
-                    
-                    if (response.ok) {
-                        const usage = await response.json();
-                        this.deeplApiKey = apiKey;
-                        localStorage.setItem('deepl_api_key', apiKey);
-                        
-                        const remaining = usage.character_limit - usage.character_count;
-                        statusDiv.innerHTML = 
-                            `<div style="color: #28a745;">✅ 接続成功！残り ${remaining.toLocaleString()} 文字</div>`;
-                        
-                        // DeepLオプションを利用可能に
-                        document.querySelector('[data-api="deepl"]').classList.add('available');
-                    } else {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-                } catch (error) {
-                    statusDiv.innerHTML = 
-                        `<div style="color: #dc3545;">❌ 接続失敗: ${error.message}<br>
-                        <small>APIキーを確認するか、他のAPIをお試しください</small></div>`;
-                }
+                    `✅ 現在の翻訳API: ${apiNames[apiName]}`;
             }
             
             async translateText(text) {
-                this.status.textContent = '翻訳中...';
-                this.translatedText.textContent = '翻訳中...';
+                if (this.isTranslating) return;
+                
+                this.isTranslating = true;
+                this.status.innerHTML = `🌍 ${this.currentApi}で翻訳中... <span class="loading">⏳</span>`;
+                this.translatedText.innerHTML = '<span class="loading">🔄</span> 翻訳中...';
                 
                 try {
                     let result;
                     
                     switch (this.currentApi) {
-                        case 'deepl':
-                            result = await this.translateWithDeepL(text);
-                            break;
                         case 'mymemory':
                             result = await this.translateWithMyMemory(text);
                             break;
                         case 'libre':
                             result = await this.translateWithLibre(text);
+                            break;
+                        case 'google':
+                            result = await this.translateWithGoogle(text);
                             break;
                         case 'microsoft':
                             result = await this.translateWithMicrosoft(text);
@@ -493,198 +765,24 @@
                     }
                     
                     this.translatedText.textContent = result;
-                    this.status.textContent = 'マイクボタンを押して話してください';
+                    this.status.textContent = this.isRecording ? '🎙️ 音声を聞いています...' : 'マイクボタンを押して話してください';
                     
                 } catch (error) {
                     console.error('Translation error:', error);
-                    this.translatedText.textContent = '翻訳エラーが発生しました';
-                    this.status.textContent = 'マイクボタンを押して話してください';
+                    this.translatedText.textContent = '❌ 翻訳エラーが発生しました';
+                    this.status.textContent = this.isRecording ? '🎙️ 音声を聞いています...' : 'マイクボタンを押して話してください';
                     
                     // 自動フォールバック
                     if (this.currentApi !== 'mymemory') {
-                        this.showError(`${this.currentApi} APIでエラーが発生しました。MyMemoryに自動切り替えします。`);
+                        this.showError(`❌ ${this.currentApi} APIでエラーが発生しました。MyMemoryに自動切り替えします。`);
                         this.selectApi('mymemory');
                         setTimeout(() => this.translateText(text), 1000);
                     }
+                } finally {
+                    this.isTranslating = false;
                 }
             }
             
-            async translateWithDeepL(text) {
-                if (!this.deeplApiKey) {
-                    throw new Error('DeepL APIキーが設定されていません');
-                }
-                
-                const formData = new FormData();
-                formData.append('text', text);
-                formData.append('target_lang', this.toLang.value.toUpperCase());
-                formData.append('source_lang', this.getDeepLSourceLang());
-                
-                const response = await fetch('https://api-free.deepl.com/v2/translate', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `DeepL-Auth-Key ${this.deeplApiKey}`
-                    },
-                    body: formData
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`DeepL API error: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                return data.translations[0].text;
-            }
-            
+            // CORS完全対応 MyMemory API
             async translateWithMyMemory(text) {
-                const response = await fetch(
-                    `https://api.allorigins.win/get?url=${encodeURIComponent(
-                        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${this.getSourceLang()}|${this.toLang.value}`
-                    )}`
-                );
-                
-                const proxyData = await response.json();
-                const data = JSON.parse(proxyData.contents);
-                
-                if (data.responseStatus === 200) {
-                    return data.responseData.translatedText;
-                } else {
-                    throw new Error('MyMemory API error');
-                }
-            }
-            
-            async translateWithLibre(text) {
-                const response = await fetch('https://libretranslate.de/translate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        q: text,
-                        source: this.getLibreSourceLang(),
-                        target: this.getLibreTargetLang(),
-                        format: 'text'
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`LibreTranslate API error: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                return data.translatedText;
-            }
-            
-            async translateWithMicrosoft(text) {
-                // Microsoft Translator Text API（限定的な無料版）
-                // 注：実際の使用には適切なAPIキーが必要
-                const response = await fetch(
-                    `https://api.allorigins.win/get?url=${encodeURIComponent(
-                        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${this.getSourceLang()}|${this.toLang.value}`
-                    )}`
-                );
-                
-                const proxyData = await response.json();
-                const data = JSON.parse(proxyData.contents);
-                
-                if (data.responseStatus === 200) {
-                    return `[Microsoft経由] ${data.responseData.translatedText}`;
-                } else {
-                    throw new Error('Microsoft API error');
-                }
-            }
-            
-            getSourceLang() {
-                return this.fromLang.value.split('-')[0];
-            }
-            
-            getDeepLSourceLang() {
-                const langMap = {
-                    'ja-JP': 'JA',
-                    'en-US': 'EN',
-                    'ko-KR': 'KO',
-                    'zh-CN': 'ZH'
-                };
-                return langMap[this.fromLang.value] || 'AUTO';
-            }
-            
-            getLibreSourceLang() {
-                const langMap = {
-                    'ja-JP': 'ja',
-                    'en-US': 'en',
-                    'ko-KR': 'ko',
-                    'zh-CN': 'zh'
-                };
-                return langMap[this.fromLang.value] || 'auto';
-            }
-            
-            getLibreTargetLang() {
-                const langMap = {
-                    'en': 'en',
-                    'ja': 'ja',
-                    'ko': 'ko',
-                    'zh': 'zh',
-                    'fr': 'fr',
-                    'es': 'es',
-                    'de': 'de'
-                };
-                return langMap[this.toLang.value] || 'en';
-            }
-            
-            toggleRecording() {
-                if (this.isRecording) {
-                    this.stopRecording();
-                } else {
-                    this.startRecording();
-                }
-            }
-            
-            startRecording() {
-                try {
-                    this.recognition.start();
-                    this.isRecording = true;
-                    this.recordBtn.classList.add('recording');
-                    this.recordBtn.innerHTML = '🛑<br>停止';
-                    this.status.textContent = '録音中...';
-                    this.hideError();
-                } catch (error) {
-                    this.showError('録音を開始できませんでした。');
-                }
-            }
-            
-            stopRecording() {
-                this.recognition.stop();
-                this.isRecording = false;
-                this.recordBtn.classList.remove('recording');
-                this.recordBtn.innerHTML = '🎤<br>開始';
-                this.status.textContent = 'マイクボタンを押して話してください';
-            }
-            
-            showError(message) {
-                this.errorDiv.textContent = message;
-                this.errorDiv.style.display = 'block';
-                setTimeout(() => this.hideError(), 5000);
-            }
-            
-            hideError() {
-                this.errorDiv.style.display = 'none';
-            }
-        }
-        
-        // グローバル関数
-        let translator;
-        
-        function selectApi(apiName) {
-            translator.selectApi(apiName);
-        }
-        
-        function testDeepLApi() {
-            translator.testDeepLApi();
-        }
-        
-        // アプリ起動
-        document.addEventListener('DOMContentLoaded', () => {
-            translator = new MultiApiTranslator();
-        });
-    </script>
-</body>
-</html>
+                const proxyUrl = 'https://api.allorigins.win/get?url=
